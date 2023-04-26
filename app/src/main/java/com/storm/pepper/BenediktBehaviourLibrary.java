@@ -46,7 +46,7 @@ import java.util.Random;
 public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private static final String TAG = BenediktBehaviourLibrary.class.getSimpleName();
 
-    private boolean doNotAnnoy = false;
+    private boolean doNotAnnoy = true;
     private boolean heardStop = false;
     private boolean haveWavedLeft = false;
     private boolean haveWavedRight = false;
@@ -77,7 +77,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
         haveWavedLeft = false;
         haveWavedRight = false;
-        doNotAnnoy = false;
+        doNotAnnoy = true;
         heardStop = false;
 //        interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
         turnedAround = false;
@@ -446,6 +446,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             pepperLog.appendLog(TAG, "Already heard stop");
             return;
         } else {
+            setActive();
             pepperLog.appendLog(TAG, "Gonna greet!");
         }
 
