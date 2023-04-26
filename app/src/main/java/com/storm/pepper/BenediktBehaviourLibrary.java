@@ -578,7 +578,24 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                     this.turnedAround = true;
                     pepperLog.appendLog(TAG, "Turning around finished with success!");
                 } else if (future.hasError()) {
-                    setAnimating(false);
+                    // If turning around is cancelled and pepper could not reach target then turn around
+                    pepperLog.appendLog(TAG, "Turning around started");
+                    // Create an animation object.
+                    Future<Animation> myAnimationFuture = AnimationBuilder.with(qiContext)
+                            .withResources(R.raw.turn_around)
+                            .buildAsync();
+
+                    myAnimationFuture.andThenConsume(myAnimation -> {
+                        Animate animate = AnimateBuilder.with(qiContext)
+                                .withAnimation(myAnimation)
+                                .build();
+
+                        // Run the action synchronously in this thread
+                        animate.run();
+
+                        pepperLog.appendLog(TAG, "Turning around finished");
+                        setAnimating(false);
+                    });
                     this.turnedAround = true;
                     pepperLog.appendLog(TAG, "Turning around has error!");
                 } else if (future.isCancelled()) {
@@ -661,7 +678,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                     setAnimating(false);
                     pepperLog.appendLog(TAG, "Roaming has error!");
                 } else if (future.isCancelled()) {
-                    // If roaming is cancellend and pepper could not reach target then turn around 
+                    // If roaming is cancelled and pepper could not reach target then turn around
                     pepperLog.appendLog(TAG, "Turning around started");
                     // Create an animation object.
                     Future<Animation> myAnimationFuture = AnimationBuilder.with(qiContext)
