@@ -16,6 +16,12 @@
                 <Action name="ApproachHuman"></Action>
             </Actions>
         </ActionPattern>
+        <ActionPattern name="AP-Interrupt">
+            <Actions>
+                <Action name="StopListening"></Action>
+                <Action name="Interrupt"></Action>
+            </Actions>
+        </ActionPattern>
         <ActionPattern name="AP-ListenForUser">
             <Actions>
                 <Action name="ListenForUser"></Action>
@@ -71,6 +77,11 @@
         <ActionPattern name="AP-Greet">
             <Actions>
                 <Action name="Greet"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-TurnAround">
+            <Actions>
+                <Action name="TurnAround"></Action>
             </Actions>
         </ActionPattern>
     </ActionPatterns>
@@ -131,15 +142,19 @@
         <CompetenceElement name="CE-Forget" triggers="AP-Forget">
             <Senses>
                 <Sense name="DoNotAnnoy" value="1" comparator="bool"></Sense>
-                <Sense name="IdleTime" value="60" comparator="gt"></Sense>
+                <Sense name="IdleTime" value="75" comparator="gt"></Sense>
             </Senses>
         </CompetenceElement>
         <CompetenceElement name="CE-Hum" triggers="AP-Hum">
             <Senses>
-                <Sense name="IdleTime" value="10" comparator="gt"></Sense>
+                <Sense name="IdleTime" value="20" comparator="gt"></Sense>
             </Senses>
         </CompetenceElement>
-
+        <CompetenceElement name="CE-TurnAround" triggers="AP-TurnAround">
+            <Senses>
+                <Sense name="TurnedAround" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
         <CompetenceElement name="CE-DismissHumans" triggers="AP-DismissHumans">
             <Senses>
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
@@ -150,9 +165,7 @@
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-
     </CompetenceElements>
-
     <Competences>
         <Competence name="C-Mapping">
             <CompetenceElements>
@@ -190,6 +203,7 @@
         <Competence name="C-SelfEntertain">
             <CompetenceElements>
                 <CompetenceElement name="CE-Forget"></CompetenceElement>
+                <CompetenceElement name="CE-TurnAround"></CompetenceElement>
                 <CompetenceElement name="CE-Hum"></CompetenceElement>
             </CompetenceElements>
         </Competence>
@@ -204,7 +218,20 @@
                 <Sense name="BatteryLow" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
+        <DriveElement name="DE-Interrupt" triggers="AP-Interrupt">
+            <Senses>
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
+                <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 
+                <!--                TODO: uncomment-->
+                <!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+                <!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+                <Sense name="ReadyToGreet" value="0" comparator="bool"></Sense>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
+                <Sense name="ReadyToInterrupt" value="1" comparator="bool"></Sense>
+                <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
+            </Senses>
+        </DriveElement>
         <DriveElement name="DE-Greet" triggers="C-Greet">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
@@ -260,7 +287,7 @@
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
-                <Sense name="IdleTime" value="15" comparator="gt"></Sense>
+                <Sense name="IdleTime" value="5" comparator="gt"></Sense>
             </Senses>
         </DriveElement>
     </DriveElements>
@@ -288,6 +315,7 @@
             </Senses>
             <DriveElements>
 <!--                <DriveElement name="DE-Approach"></DriveElement>-->
+                <DriveElement name="DE-Interrupt"></DriveElement>
                 <DriveElement name="DE-Greet"></DriveElement>
                 <DriveElement name="DE-Annoy"></DriveElement>
                 <DriveElement name="DE-Reset"></DriveElement>

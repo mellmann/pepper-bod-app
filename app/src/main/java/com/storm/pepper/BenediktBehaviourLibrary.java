@@ -51,6 +51,9 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private boolean haveWavedLeft = false;
     private boolean haveWavedRight = false;
     private boolean interactionTimerSet = false;
+    private boolean turnedAround = false;
+
+    private int currentDistanceLvl;
 
     private String[] humPhrases = {"I am bored", "I wish something was happening", "This is boring, please approach me."};
     private Date nextHumTime;
@@ -76,6 +79,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         doNotAnnoy = false;
         heardStop = false;
         interactionTimerSet = false;
+        turnedAround = false;
     }
 
     public boolean getBooleanSense(Sense sense) {
@@ -101,7 +105,9 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             case "ReadyToInterrupt":
                 senseValue = getReadyToInterrupt();
                 break;
-
+            case "TurnedAround":
+                senseValue = turnedAround;
+                break;
             default:
                 senseValue = super.getBooleanSense(sense);
                 break;
@@ -150,6 +156,10 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "ForgetAnnoy":
                 this.doNotAnnoy = false;
+                this.interactionTimerSet = false;
+                this.interruptTime = null;
+                this.turnedAround = false;
+                this.currentDistanceLvl = 99;
                 break;
 
             case "Hum":
@@ -168,8 +178,12 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 chatFuture.requestCancellation();
                 break;
 
-            case "ResetInterruptionTimer":
-                this.interactionTimerSet = false;
+            case "Interrupt":
+                this.doNotAnnoy = true;
+                break;
+
+            case "TurnAround":
+                turnAroundAndGo();
                 break;
 
             default:
@@ -240,6 +254,20 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             return true;
         } else {
             pepperLog.appendLog(TAG, "Weird thing with interruption timer is happening.");
+
+            this.interactionTimerSet = true;
+
+            pepperLog.appendLog(TAG, "Setting interruption timer...");
+            // set time to interrupt interaction
+            int interactDelay = 45; // interrupt interaction 45 secs after first contact
+            pepperLog.appendLog(TAG, String.format("Will interrupt this interaction in %d seconds", interactDelay));
+            Calendar calendar_interrupt = Calendar.getInstance();
+            calendar_interrupt.setTime(now);
+            calendar_interrupt.add(Calendar.SECOND, interactDelay);
+            interruptTime = calendar_interrupt.getTime();
+
+            pepperLog.appendLog(TAG, "Interruption timer set successfully.");
+
             return false;
         }
     }
@@ -390,6 +418,9 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         } else if (nextGreetTime != null && now.before(nextGreetTime)) {
             pepperLog.appendLog(TAG, "Don't want to greet yet");
             return;
+        } else if (heardStop) {
+            pepperLog.appendLog(TAG, "Already heard stop");
+            return;
         } else {
             pepperLog.appendLog(TAG, "Gonna greet!");
         }
@@ -402,31 +433,41 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         calendar.add(Calendar.SECOND, greetDelay);
         nextGreetTime = calendar.getTime();
 
-//        if (!this.interactionTimerSet && !now.before(this.interruptTime)) {
-//            this.interactionTimerSet = true;
-//
-//            pepperLog.appendLog(TAG, "Setting interruption timer...");
-//            // set time to interrupt interaction
-//            int interactDelay = 45; // interrupt interaction 45 secs after first contact
-//            pepperLog.appendLog(TAG, String.format("Next hum in %d seconds", interactDelay));
-//            Calendar calendar_interrupt = Calendar.getInstance();
-//            calendar_interrupt.setTime(now);
-//            calendar_interrupt.add(Calendar.SECOND, interactDelay);
-//            interruptTime = calendar_interrupt.getTime();
-//
-//            pepperLog.appendLog(TAG, "Interruption timer set successfully.");
-//        }
-
         double distance = getDistanceToHumanToGreet();
+        int distanceLvl;
         String greeting;
 
         if (distance > 3) {
+            distanceLvl = 3;
+            if (distanceLvl == this.currentDistanceLvl) {
+                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                return;
+            }
+            this.currentDistanceLvl = 3;
             greeting = "You are far away, please get a little closer!";
         } else if (distance > 2) {
+            distanceLvl = 2;
+            if (distanceLvl == this.currentDistanceLvl) {
+                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                return;
+            }
+            this.currentDistanceLvl = 2;
             greeting = "Get closer so that I can see you better!";
         } else if (distance > 1) {
+            distanceLvl = 1;
+            if (distanceLvl == this.currentDistanceLvl) {
+                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                return;
+            }
+            this.currentDistanceLvl = 1;
             greeting = "One more step and I see you perfectly.";
         } else {
+            distanceLvl = 0;
+            if (distanceLvl == this.currentDistanceLvl) {
+                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                return;
+            }
+            this.currentDistanceLvl = 0;
             greeting = "Hey there!";
         }
 
@@ -442,6 +483,48 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         });
     }
 
+    private void turnAroundAndGo() {
+
+        if (animating) {
+            pepperLog.appendLog(TAG, "Can't turn around. Already animating");
+            return;
+        }
+
+        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
+            setAnimating(true);
+            // Get the robot frame.
+            Frame robotFrame = actuation.robotFrame();
+
+            // Create a FreeFrame representing the current robot frame.
+            FreeFrame locationFrame = mapping.makeFreeFrame();
+
+            Transform transform = TransformBuilder.create().from2DTranslation(-0.5, 0.0);
+            locationFrame.update(robotFrame, transform, 0L);
+
+            // Create a GoTo action.
+            goTo = GoToBuilder.with(qiContext)
+                    .withFrame(locationFrame.frame())
+                    .build();
+
+            // Display text when the GoTo action starts.
+            pepperLog.appendLog(TAG, "Turning around and going...");
+
+            // Execute the GoTo action asynchronously.
+            Future<Void> goToFuture = goTo.async().run();
+            goToFuture.thenConsume(future -> {
+                if (future.isSuccess()) {
+                    setAnimating(false);
+                    this.turnedAround = true;
+                    pepperLog.appendLog(TAG, "Turning around finished with success!");
+                } else if (future.hasError()) {
+                    pepperLog.appendLog(TAG, "Turning around has error!");
+                }
+            });
+        });
+
+
+    }
+
     public void roam() {
         Date now = new Date();
         if (animating) {
@@ -455,7 +538,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         }
 
         // set next time to hum
-        int roamDelay = ThreadLocalRandom.current().nextInt(15, 25);
+        int roamDelay = ThreadLocalRandom.current().nextInt(15, 30);
         pepperLog.appendLog(TAG, String.format("Next roam in %d seconds", roamDelay));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
@@ -463,17 +546,16 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         nextRoamTime = calendar.getTime();
 
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
-            setActive();
             setAnimating(true);
 
 
-            double x = 0.0;
-            double y = 0.0;
+//            double x = 0.0;
+//            double y = 0.0;
 
             // TODO: uncomment
-//            Random rand = new Random();
-//            double x = 3 * rand.nextDouble();
-//            double y = 3 * rand.nextDouble();
+            Random rand = new Random();
+            double x = 3 * rand.nextDouble();
+            double y = 3 * rand.nextDouble();
 
             // Get the robot frame.
             Frame robotFrame = actuation.robotFrame();
@@ -503,21 +585,8 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 }
             });
 
-
         });
 
-
-
-
-//        goToFuture.thenConsume(future -> {
-//            if (future.isSuccess()) {
-//                setDidRoam(true);
-//                setAnimating(false);
-//                pepperLog.appendLog(TAG, "Roam action finished with success.");
-//            } else if (future.hasError()) {
-//                pepperLog.appendLog(TAG, "Roam action finished with error.");
-//            }
-//        });
     }
 
     private void waveRight() {
@@ -588,10 +657,5 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     public void setHaveWavedRight(boolean state) {
         this.haveWavedRight = state;
     }
-
-    public void setTalking(boolean state) {
-        this.talking = state;
-    }
-
 
 }
