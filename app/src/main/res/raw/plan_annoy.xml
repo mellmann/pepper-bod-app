@@ -220,11 +220,10 @@
         </DriveElement>
         <DriveElement name="DE-Interrupt" triggers="AP-Interrupt">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 
-                <!--                TODO: uncomment-->
-                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+<!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
 <!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
 
                 <Sense name="ReadyToGreet" value="0" comparator="bool"></Sense>
@@ -235,7 +234,7 @@
         </DriveElement>
         <DriveElement name="DE-Greet" triggers="C-Greet">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 
 <!--                TODO: uncomment-->
@@ -249,7 +248,7 @@
 
         <DriveElement name="DE-Annoy" triggers="C-Annoy" checkTime="0">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 <!--                TODO: uncomment-->
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
@@ -261,7 +260,7 @@
 
         <DriveElement name="DE-Approach" triggers="C-Approach" checkTime="1">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
 <!--                <Sense name="HumanClose" value="0" comparator="bool"></Sense>-->
@@ -270,7 +269,7 @@
         </DriveElement>
         <DriveElement name="DE-Reset" triggers="AP-StopListening" checkTime="0">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
                 <Sense name="Listening" value="1" comparator="bool"></Sense>
@@ -278,7 +277,7 @@
         </DriveElement>
         <DriveElement name="DE-Explore" triggers="AP-Explore" checkTime="10">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
                 <Sense name="IdleTime" value="60" comparator="gt"></Sense>
             </Senses>
@@ -286,7 +285,7 @@
 
         <DriveElement name="DE-EntertainSelf" triggers="C-SelfEntertain" checkTime="0">
             <Senses>
-<!--                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>-->
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
 <!--                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>-->
                 <Sense name="ReadyToSelfEntertain" value="1" comparator="bool"></Sense>
                 <Sense name="IdleTime" value="5" comparator="gt"></Sense>

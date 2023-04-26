@@ -6,6 +6,7 @@ import com.aldebaran.qi.sdk.builder.AnimateBuilder;
 import com.aldebaran.qi.sdk.builder.AnimationBuilder;
 import com.aldebaran.qi.sdk.builder.ChatBuilder;
 import com.aldebaran.qi.sdk.builder.GoToBuilder;
+import com.aldebaran.qi.sdk.builder.HolderBuilder;
 import com.aldebaran.qi.sdk.builder.ListenBuilder;
 import com.aldebaran.qi.sdk.builder.PhraseSetBuilder;
 import com.aldebaran.qi.sdk.builder.QiChatbotBuilder;
@@ -28,6 +29,8 @@ import com.aldebaran.qi.sdk.object.conversation.Say;
 import com.aldebaran.qi.sdk.object.conversation.Topic;
 import com.aldebaran.qi.sdk.object.geometry.Transform;
 import com.aldebaran.qi.sdk.object.geometry.Vector3;
+import com.aldebaran.qi.sdk.object.holder.AutonomousAbilitiesType;
+import com.aldebaran.qi.sdk.object.holder.Holder;
 import com.aldebaran.qi.sdk.object.human.Human;
 import com.aldebaran.qi.sdk.object.humanawareness.HumanAwareness;
 import com.aldebaran.qi.sdk.util.FutureUtils;
@@ -54,6 +57,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private boolean haveWavedRight = false;
 //    private boolean interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
     private boolean turnedAround = false;
+    private boolean firstGreet = false;
 
     private int currentDistanceLvl;
 
@@ -69,6 +73,10 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private GoTo goTo;
     private Future<Void> goToFuture;
 
+    private boolean abilitiesHeld = false;
+    // The holder for the abilities.
+    private Holder holder;
+
     private Future<ListenResult> listenFuture;
     private Future<Void> chatFuture;
 
@@ -83,6 +91,8 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         heardStop = false;
 //        interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
         turnedAround = false;
+        firstGreet = false;
+        abilitiesHeld = false;
     }
 
     public boolean getBooleanSense(Sense sense) {
@@ -167,6 +177,8 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 this.currentDistanceLvl = 99;
                 this.lastTimeTalk = null;
                 this.goToFuture.requestCancellation();
+                this.firstGreet = false;
+                releaseAbilities(holder);
                 break;
 
             case "Hum":
@@ -193,6 +205,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "TurnAround":
                 turnAroundAndGo();
+                holdAbilities();
                 break;
 
             default:
@@ -476,39 +489,45 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         int distanceLvl;
         String greeting;
 
-        if (distance > 3) {
-            distanceLvl = 3;
-            if (distanceLvl == this.currentDistanceLvl) {
-                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
-                return;
-            }
-            this.currentDistanceLvl = 3;
-            greeting = "You are far away, please get a little closer!";
-        } else if (distance > 2) {
-            distanceLvl = 2;
-            if (distanceLvl == this.currentDistanceLvl) {
-                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
-                return;
-            }
-            this.currentDistanceLvl = 2;
-            greeting = "Get closer so that I can see you better!";
-        } else if (distance > 1) {
-            distanceLvl = 1;
-            if (distanceLvl == this.currentDistanceLvl) {
-                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
-                return;
-            }
-            this.currentDistanceLvl = 1;
-            greeting = "One more step and I see you perfectly.";
+        if (!firstGreet) {
+            greeting = "Hi, good to see you!";
+            firstGreet = true;
         } else {
-            distanceLvl = 0;
-            if (distanceLvl == this.currentDistanceLvl) {
-                pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
-                return;
+            if (distance > 3) {
+                distanceLvl = 3;
+                if (distanceLvl == this.currentDistanceLvl) {
+                    pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                    return;
+                }
+                this.currentDistanceLvl = 3;
+                greeting = "You are far away, please get a little closer!";
+            } else if (distance > 2) {
+                distanceLvl = 2;
+                if (distanceLvl == this.currentDistanceLvl) {
+                    pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                    return;
+                }
+                this.currentDistanceLvl = 2;
+                greeting = "Get closer so that I can see you better!";
+            } else if (distance > 1) {
+                distanceLvl = 1;
+                if (distanceLvl == this.currentDistanceLvl) {
+                    pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                    return;
+                }
+                this.currentDistanceLvl = 1;
+                greeting = "One more step and I see you perfectly.";
+            } else {
+                distanceLvl = 0;
+                if (distanceLvl == this.currentDistanceLvl) {
+                    pepperLog.appendLog(TAG, "Distance to human has not changed, I do not need to greet.");
+                    return;
+                }
+                this.currentDistanceLvl = 0;
+                greeting = "Hey there!";
             }
-            this.currentDistanceLvl = 0;
-            greeting = "Hey there!";
         }
+
 
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
             this.talking = true;
@@ -559,7 +578,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             // Create a FreeFrame representing the current robot frame.
             FreeFrame locationFrame = mapping.makeFreeFrame();
 
-            Transform transform = TransformBuilder.create().from2DTranslation(-0.3, 0.0);
+            Transform transform = TransformBuilder.create().from2DTranslation(-0.5, 0.0);
             locationFrame.update(robotFrame, transform, 0L);
 
             // Create a GoTo action.
@@ -580,6 +599,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 } else if (future.hasError()) {
                     // If turning around is cancelled and pepper could not reach target then turn around
                     pepperLog.appendLog(TAG, "Turning around started");
+
                     // Create an animation object.
                     Future<Animation> myAnimationFuture = AnimationBuilder.with(qiContext)
                             .withResources(R.raw.turn_around)
@@ -635,7 +655,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         }
 
         // set next time to hum
-        int roamDelay = ThreadLocalRandom.current().nextInt(15, 20);
+        int roamDelay = ThreadLocalRandom.current().nextInt(25, 35);
         pepperLog.appendLog(TAG, String.format("Next roam in %d seconds", roamDelay));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
@@ -646,9 +666,8 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
             setAnimating(true);
 
-            Random rand = new Random();
-            double x = 2 * rand.nextDouble();
-            double y = 2 * rand.nextDouble();
+            double x = ThreadLocalRandom.current().nextDouble(0.5, 2);
+            double y = ThreadLocalRandom.current().nextDouble(-0.5, 0.5);
 
             // Get the robot frame.
             Frame robotFrame = actuation.robotFrame();
@@ -678,6 +697,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                     setAnimating(false);
                     pepperLog.appendLog(TAG, "Roaming has error!");
                 } else if (future.isCancelled()) {
+                    pepperLog.appendLog(TAG, "Roaming has been cancelled, will turn around!");
                     // If roaming is cancelled and pepper could not reach target then turn around
                     pepperLog.appendLog(TAG, "Turning around started");
                     // Create an animation object.
@@ -697,13 +717,43 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                         setAnimating(false);
                     });
 
-                    pepperLog.appendLog(TAG, "Roaming has been cancelled!");
+
                 }
             });
 
         });
 
 
+    }
+
+    private void holdAbilities() {
+        // Build and store the holder for the abilities.
+        holder = HolderBuilder.with(qiContext)
+                .withAutonomousAbilities(
+                        AutonomousAbilitiesType.BASIC_AWARENESS
+                )
+                .build();
+
+        // Hold the abilities asynchronously.
+        Future<Void> holdFuture = holder.async().hold();
+
+        // Chain the hold with a lambda on the UI thread.
+        holdFuture.andThenConsume(ignore -> {
+            // Store the abilities status.
+            abilitiesHeld = true;
+            pepperLog.appendLog(TAG, "Holding autonomous abilities.");
+        });
+    }
+
+    private void releaseAbilities(Holder holder) {
+        // Release the holder asynchronously.
+        Future<Void> releaseFuture = holder.async().release();
+
+        releaseFuture.andThenConsume(ignore -> {
+            // Store the abilities status.
+            abilitiesHeld = false;
+            pepperLog.appendLog(TAG, "Autonomous abilities released!");
+        });
     }
 
     private void waveRight() {
