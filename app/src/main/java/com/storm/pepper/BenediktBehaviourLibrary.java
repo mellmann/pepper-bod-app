@@ -50,7 +50,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private boolean heardStop = false;
     private boolean haveWavedLeft = false;
     private boolean haveWavedRight = false;
-    private boolean interactionTimerSet = false;
+//    private boolean interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
     private boolean turnedAround = false;
 
     private int currentDistanceLvl;
@@ -59,7 +59,8 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private Date nextHumTime;
     private Date nextGreetTime;
     private Date nextRoamTime;
-    private Date interruptTime;
+//    private Date interruptTime; TODO: uncomment for fixed seconds interrupt timer
+    private Date lastTimeTalk;
 
     private GoTo goTo;
 
@@ -78,7 +79,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         haveWavedRight = false;
         doNotAnnoy = false;
         heardStop = false;
-        interactionTimerSet = false;
+//        interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
         turnedAround = false;
     }
 
@@ -156,10 +157,11 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "ForgetAnnoy":
                 this.doNotAnnoy = false;
-                this.interactionTimerSet = false;
-                this.interruptTime = null;
+//                this.interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
+//                this.interruptTime = null;
                 this.turnedAround = false;
                 this.currentDistanceLvl = 99;
+                this.lastTimeTalk = null;
                 break;
 
             case "Hum":
@@ -247,30 +249,45 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     public boolean getReadyToInterrupt () {
         Date now = new Date();
 
-        if (interruptTime != null && now.before(interruptTime) && this.interactionTimerSet) {
-            pepperLog.appendLog(TAG, "I am not ready to interrupt yet");
-            return false;
-        } else if (interruptTime != null && !now.before(interruptTime) && this.interactionTimerSet){
-            pepperLog.appendLog(TAG, "It is about time to interrupt this interaction");
-            return true;
+        if (this.lastTimeTalk != null) {
+            long seconds_since_last_talk = Math.abs(now.getTime() - this.lastTimeTalk.getTime()) / 1000;
+            if (seconds_since_last_talk > 20) {
+                pepperLog.appendLog(TAG, "More than 20 secs since I last heard something, going to interrupt...");
+                return true;
+            } else {
+                pepperLog.appendLog(TAG, "Not ready to interrupt yet");
+                return false;
+            }
         } else {
-            pepperLog.appendLog(TAG, "Weird thing with interruption timer is happening.");
-
-            this.interactionTimerSet = true;
-
-            pepperLog.appendLog(TAG, "Setting interruption timer...");
-            // set time to interrupt interaction
-            int interactDelay = 45; // interrupt interaction 45 secs after first contact
-            pepperLog.appendLog(TAG, String.format("Will interrupt this interaction in %d seconds", interactDelay));
-            Calendar calendar_interrupt = Calendar.getInstance();
-            calendar_interrupt.setTime(now);
-            calendar_interrupt.add(Calendar.SECOND, interactDelay);
-            interruptTime = calendar_interrupt.getTime();
-
-            pepperLog.appendLog(TAG, "Interruption timer set successfully.");
-
+            pepperLog.appendLog(TAG, "No last time I heard something set yet");
             return false;
         }
+
+//        TODO: uncomment for fixed seconds interrupt timer
+//        if (interruptTime != null && now.before(interruptTime) && this.interactionTimerSet) {
+//            pepperLog.appendLog(TAG, "I am not ready to interrupt yet");
+//            return false;
+//        } else if (interruptTime != null && !now.before(interruptTime) && this.interactionTimerSet){
+//            pepperLog.appendLog(TAG, "It is about time to interrupt this interaction");
+//            return true;
+//        } else {
+//            pepperLog.appendLog(TAG, "Weird thing with interruption timer is happening.");
+//
+//            this.interactionTimerSet = true;
+//
+//            pepperLog.appendLog(TAG, "Setting interruption timer...");
+//            // set time to interrupt interaction
+//            int interactDelay = 45; // interrupt interaction 45 secs after first contact
+//            pepperLog.appendLog(TAG, String.format("Will interrupt this interaction in %d seconds", interactDelay));
+//            Calendar calendar_interrupt = Calendar.getInstance();
+//            calendar_interrupt.setTime(now);
+//            calendar_interrupt.add(Calendar.SECOND, interactDelay);
+//            interruptTime = calendar_interrupt.getTime();
+//
+//            pepperLog.appendLog(TAG, "Interruption timer set successfully.");
+//
+//            return false;
+//        }
     }
 
     public void startChat () {
@@ -304,6 +321,12 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             this.chat.addOnStartedListener(() -> {
                 this.listening = true;
                 pepperLog.appendLog(TAG, "Started chat");
+            });
+
+            this.chat.addOnHeardListener(heard -> {
+                Date now = new Date();
+                this.lastTimeTalk = now;
+                pepperLog.appendLog(TAG, "I heard something");
             });
 
             FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore_2) -> {
