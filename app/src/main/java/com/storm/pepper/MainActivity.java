@@ -84,8 +84,8 @@ public class MainActivity extends RobotActivity implements PepperLog {
         planner = new Planner(this);
 
         // configure for chosen plan
-        planResourceId = R.raw.plan_die;
-        behaviourLibrary = new DieBehaviourLibrary();
+        planResourceId = R.raw.plan_annoy;
+        behaviourLibrary = new BenediktBehaviourLibrary();
 //        planResourceId = R.raw.plan_annoy;
 //        behaviourLibrary = new AnnoyBehaviourLibrary();
         // end configure for chosen plan

@@ -16,9 +16,9 @@
                 <Action name="ApproachHuman"></Action>
             </Actions>
         </ActionPattern>
-        <ActionPattern name="AP-ListenForStop">
+        <ActionPattern name="AP-ListenForUser">
             <Actions>
-                <Action name="ListenForStop"></Action>
+                <Action name="ListenForUser"></Action>
             </Actions>
         </ActionPattern>
         <ActionPattern name="AP-StopListening">
@@ -60,11 +60,17 @@
         <ActionPattern name="AP-Hum">
             <Actions>
                 <Action name="Hum"></Action>
+                <Action name="Roam"></Action>
             </Actions>
         </ActionPattern>
         <ActionPattern name="AP-DismissHumans">
             <Actions>
                 <Action name="DismissHumans"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Greet">
+            <Actions>
+                <Action name="Greet"></Action>
             </Actions>
         </ActionPattern>
     </ActionPatterns>
@@ -88,7 +94,7 @@
                 <Sense name="HeardStop" value="1" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-        <CompetenceElement name="CE-ListenForStop" triggers="AP-ListenForStop">
+        <CompetenceElement name="CE-ListenForUser" triggers="AP-ListenForUser">
             <Senses>
                 <Sense name="Listening" value="0" comparator="bool"></Sense>
             </Senses>
@@ -108,6 +114,16 @@
             <Senses>
                 <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
                 <Sense name="HaveWavedRight" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-Greet" triggers="AP-Greet">
+            <Senses>
+                <Sense name="Listening" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-StopListenForGreet" triggers="AP-StopListening">
+            <Senses>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
 
@@ -154,9 +170,15 @@
                 <CompetenceElement name="CE-Approach"></CompetenceElement>
             </CompetenceElements>
         </Competence>
+        <Competence name="C-Greet">
+            <CompetenceElements>
+                <CompetenceElement name="CE-StopListenForGreet"></CompetenceElement>
+                <CompetenceElement name="CE-Greet"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
         <Competence name="C-Annoy">
             <CompetenceElements>
-                <CompetenceElement name="CE-ListenForStop"></CompetenceElement>
+                <CompetenceElement name="CE-ListenForUser"></CompetenceElement>
                 <CompetenceElement name="CE-Stop"></CompetenceElement>
                 <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
                 <CompetenceElement name="CE-WaveRight"></CompetenceElement>
@@ -182,16 +204,32 @@
             </Senses>
         </DriveElement>
 
+        <DriveElement name="DE-Greet" triggers="C-Greet">
+            <Senses>
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
+                <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
+
+<!--                TODO: uncomment-->
+<!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+
+                <Sense name="ReadyToGreet" value="1" comparator="bool"></Sense>
+                <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
+            </Senses>
+        </DriveElement>
 
         <DriveElement name="DE-Annoy" triggers="C-Annoy" checkTime="0">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
-                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-                <Sense name="HumanClose" value="1" comparator="bool"></Sense>
+<!--                TODO: uncomment-->
+<!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+
                 <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
             </Senses>
         </DriveElement>
+
         <DriveElement name="DE-Approach" triggers="C-Approach" checkTime="1">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
@@ -209,10 +247,6 @@
                 <Sense name="Listening" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
-
-
-
-
         <DriveElement name="DE-Explore" triggers="AP-Explore" checkTime="10">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
@@ -252,7 +286,8 @@
                 <Sense name="DoNotAnnoy" value="1" comparator="bool"></Sense>
             </Senses>
             <DriveElements>
-                <DriveElement name="DE-Approach"></DriveElement>
+<!--                <DriveElement name="DE-Approach"></DriveElement>-->
+                <DriveElement name="DE-Greet"></DriveElement>
                 <DriveElement name="DE-Annoy"></DriveElement>
                 <DriveElement name="DE-Reset"></DriveElement>
             </DriveElements>

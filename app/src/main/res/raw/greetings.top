@@ -1,0 +1,10 @@
+topic: ~greetings()
+
+# Defining extra concepts out of words or group of words
+concept:(hello) [hi hello hey hallo greetings howdy]
+concept:(reply) ["hello, sorry I can't talk" "hi, sorry I can't talk" "hey, I am not great with listening, to be honest" "good morning, I am not great with listening" "greetings, I can't talk"]
+
+# Replying to speech
+u:(~hello) ~reply
+u:(e:Dialog/NotUnderstood) I am not great with listening, to be honest
+

@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCallbacks {
@@ -266,9 +267,9 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
                 dismissHumans();
                 break;
 
-            case "StopListening":
-                stopListening();
-                break;
+//            case "StopListening":
+//                stopListening();
+//                break;
 
             default:
                 Log.d(TAG, "UNKNOWN ACTION");
@@ -664,6 +665,31 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     // Store the action execution future.
     private Future<Void> goToFuture;
 
+    public double getDistanceToHumanToGreet() {
+        HumanAwareness humanAwareness = qiContext.getHumanAwareness();
+        Future<List<Human>> humansAroundFuture = humanAwareness.async().getHumansAround();
+
+        Future<Double> distance = humansAroundFuture.andThenApply(humans -> {
+            // If humans found, return the closest one.
+            if (!humans.isEmpty()) {
+                pepperLog.appendLog(TAG, "Human to greet found.");
+                Frame robotFrame = actuation.robotFrame();
+                return getDistance(robotFrame, getClosestHuman(humans));
+
+            } else {
+                pepperLog.appendLog(TAG, "No human.");
+                return 99.0;
+            }
+        });
+
+        try {
+            pepperLog.appendLog(TAG, "Distance to human to greet: " + String.valueOf(distance.get()));
+            return distance.get();
+        } catch (ExecutionException e) {
+            return 99.0;
+        }
+    }
+
     public void searchHumans() {
         HumanAwareness humanAwareness = qiContext.getHumanAwareness();
         Future<List<Human>> humansAroundFuture = humanAwareness.async().getHumansAround();
@@ -738,7 +764,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 //            return false;
 //        }
 //
-//        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume(ignore -> {
+//        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
 //            pepperLog.appendLog(TAG, "STEP 1");
 //            // Get the robot frame.
 //            Frame robotFrame = qiContext.getActuation().robotFrame();
@@ -751,6 +777,11 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 //            pepperLog.appendLog(TAG, String.format("Human distance is %f", distance));
 //
 //            pepperLog.appendLog(TAG, "STEP 4");
+//            if (distance > 1.0) {
+//                return false;
+//            } else {
+//                return true;
+//            }
 //        });
 //        return false;
     }
