@@ -97,6 +97,7 @@
         <CompetenceElement name="CE-ListenForUser" triggers="AP-ListenForUser">
             <Senses>
                 <Sense name="Listening" value="0" comparator="bool"></Sense>
+                <Sense name="Talking" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
         <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
