@@ -224,8 +224,8 @@
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 
                 <!--                TODO: uncomment-->
-                <!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
-                <!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="HumanClose" value="1" comparator="bool"></Sense>
                 <Sense name="ReadyToGreet" value="0" comparator="bool"></Sense>
                 <Sense name="Listening" value="1" comparator="bool"></Sense>
                 <Sense name="ReadyToInterrupt" value="1" comparator="bool"></Sense>
@@ -238,8 +238,8 @@
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 
 <!--                TODO: uncomment-->
-<!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
-<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="HumanClose" value="1" comparator="bool"></Sense>
 
                 <Sense name="ReadyToGreet" value="1" comparator="bool"></Sense>
                 <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
@@ -251,8 +251,8 @@
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 <!--                TODO: uncomment-->
-<!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
-<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="HumanClose" value="1" comparator="bool"></Sense>
 
                 <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
             </Senses>
@@ -286,7 +286,7 @@
         <DriveElement name="DE-EntertainSelf" triggers="C-SelfEntertain" checkTime="0">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
-                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+<!--                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>-->
                 <Sense name="IdleTime" value="5" comparator="gt"></Sense>
             </Senses>
         </DriveElement>
@@ -322,15 +322,17 @@
             </DriveElements>
         </Drive>
 
-        <Drive name="D-Explore" priority="3">
+
+
+        <Drive name="D-EntertainSelf" priority="3">
             <DriveElements>
-                <DriveElement name="DE-Explore"></DriveElement>
+                <DriveElement name="DE-EntertainSelf"></DriveElement>
             </DriveElements>
         </Drive>
 
-        <Drive name="D-EntertainSelf" priority="4">
+        <Drive name="D-Explore" priority="4">
             <DriveElements>
-                <DriveElement name="DE-EntertainSelf"></DriveElement>
+                <DriveElement name="DE-Explore"></DriveElement>
             </DriveElements>
         </Drive>
 

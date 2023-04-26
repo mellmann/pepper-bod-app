@@ -55,7 +55,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
     private int currentDistanceLvl;
 
-    private String[] humPhrases = {"I am bored", "I wish something was happening", "This is boring, please approach me."};
+    private String[] humPhrases = {"I am bored", "This is boring", "This is so very boring", "So bored"};
     private Date nextHumTime;
     private Date nextGreetTime;
     private Date nextRoamTime;
