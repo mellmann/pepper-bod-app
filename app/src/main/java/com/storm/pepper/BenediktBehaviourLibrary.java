@@ -56,13 +56,16 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private int currentDistanceLvl;
 
     private String[] humPhrases = {"I am bored", "This is boring", "This is so very boring", "So bored"};
+    private String[] boredPhrases = {"I think I spend some time alone", "Let me explore this place", "This is an interesting room", "It is good to be here"};
     private Date nextHumTime;
     private Date nextGreetTime;
     private Date nextRoamTime;
+    private Date lastRoamTime;
 //    private Date interruptTime; TODO: uncomment for fixed seconds interrupt timer
     private Date lastTimeTalk;
 
     private GoTo goTo;
+    private Future<Void> goToFuture;
 
 
     private Future<ListenResult> listenFuture;
@@ -108,6 +111,9 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 break;
             case "TurnedAround":
                 senseValue = turnedAround;
+                break;
+            case "ReadyToSelfEntertain":
+                senseValue = doNotAnnoy || !this.humanPresent;
                 break;
             default:
                 senseValue = super.getBooleanSense(sense);
@@ -162,6 +168,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 this.turnedAround = false;
                 this.currentDistanceLvl = 99;
                 this.lastTimeTalk = null;
+                this.goToFuture.requestCancellation();
                 break;
 
             case "Hum":
@@ -182,6 +189,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "Interrupt":
                 this.doNotAnnoy = true;
+                this.turnedAround = false;
                 sayBye();
                 break;
 
@@ -215,10 +223,17 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         calendar.add(Calendar.SECOND, humDelay);
         nextHumTime = calendar.getTime();
 
-        // choose a phrase to hum
-        int index = ThreadLocalRandom.current().nextInt(humPhrases.length);
-        System.out.println("\nIndex :" + index);
-        String humPhrase = humPhrases[index];
+        // choose a phrase to hum depending on whether robot is ready to interact (doNotAnnoy)
+        String humPhrase;
+        if (this.doNotAnnoy) {
+            int index = ThreadLocalRandom.current().nextInt(boredPhrases.length);
+            System.out.println("\nIndex :" + index);
+            humPhrase = boredPhrases[index];
+        } else {
+            int index = ThreadLocalRandom.current().nextInt(humPhrases.length);
+            System.out.println("\nIndex :" + index);
+            humPhrase = humPhrases[index];
+        }
 
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
             this.talking = true;
@@ -408,6 +423,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
         if (animating) {
             pepperLog.appendLog(TAG, "WAVING IN PROGRESS");
+            this.goToFuture.requestCancellation();
             return;
         }
 
@@ -532,6 +548,9 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         if (animating) {
             pepperLog.appendLog(TAG, "Can't turn around. Already animating");
             return;
+        } else if (this.turnedAround) {
+            pepperLog.appendLog(TAG, "Already turned around.");
+            return;
         }
 
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
@@ -554,14 +573,20 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             pepperLog.appendLog(TAG, "Turning around and going...");
 
             // Execute the GoTo action asynchronously.
-            Future<Void> goToFuture = goTo.async().run();
+            goToFuture = goTo.async().run();
             goToFuture.thenConsume(future -> {
                 if (future.isSuccess()) {
                     setAnimating(false);
                     this.turnedAround = true;
                     pepperLog.appendLog(TAG, "Turning around finished with success!");
                 } else if (future.hasError()) {
+                    setAnimating(false);
+                    this.turnedAround = true;
                     pepperLog.appendLog(TAG, "Turning around has error!");
+                } else if (future.isCancelled()) {
+                    setAnimating(false);
+                    this.turnedAround = true;
+                    pepperLog.appendLog(TAG, "Turning around has been cancelled!");
                 }
             });
         });
@@ -572,8 +597,23 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     public void roam() {
         Date now = new Date();
         if (animating) {
-            pepperLog.appendLog(TAG, String.format("Already animating, cannot roam"));
-            return;
+            long seconds_since_last_roam_started = Math.abs(now.getTime() - this.lastRoamTime.getTime()) / 1000;
+
+            if (seconds_since_last_roam_started > 15) {
+                // cancel current goto if last roam has not finished within 15 secs
+                this.goToFuture.requestCancellation();
+                pepperLog.appendLog(TAG, "Cancelling roaming, this took too long!");
+                return;
+            } else if (!this.turnedAround) {
+                // cancel current goto if turning around has still not finished
+                this.goToFuture.requestCancellation();
+                pepperLog.appendLog(TAG, "Cancelling turnAround, this took too long!");
+                return;
+            } else {
+                pepperLog.appendLog(TAG, String.format("Already animating, cannot roam"));
+                return;
+            }
+
         } else if (nextRoamTime != null && now.before(nextRoamTime)) {
             pepperLog.appendLog(TAG, "Don't want to roam yet");
             return;
@@ -582,12 +622,13 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         }
 
         // set next time to hum
-        int roamDelay = ThreadLocalRandom.current().nextInt(15, 30);
+        int roamDelay = ThreadLocalRandom.current().nextInt(30, 45);
         pepperLog.appendLog(TAG, String.format("Next roam in %d seconds", roamDelay));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
         calendar.add(Calendar.SECOND, roamDelay);
         nextRoamTime = calendar.getTime();
+        lastRoamTime = now;
 
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
             setAnimating(true);
@@ -598,8 +639,8 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             // TODO: uncomment
             Random rand = new Random();
-            double x = 3 * rand.nextDouble();
-            double y = 3 * rand.nextDouble();
+            double x = 2 * rand.nextDouble();
+            double y = 2 * rand.nextDouble();
 
             // Get the robot frame.
             Frame robotFrame = actuation.robotFrame();
@@ -619,13 +660,17 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             goTo.addOnStartedListener(() -> pepperLog.appendLog(TAG, "Roaming started"));
 
             // Execute the GoTo action asynchronously.
-            Future<Void> goToFuture = goTo.async().run();
+            goToFuture = goTo.async().run();
             goToFuture.thenConsume(future -> {
                 if (future.isSuccess()) {
                     setAnimating(false);
                     pepperLog.appendLog(TAG, "Roaming finished with success!");
                 } else if (future.hasError()) {
+                    setAnimating(false);
                     pepperLog.appendLog(TAG, "Roaming has error!");
+                } else if (future.isCancelled()) {
+                    setAnimating(false);
+                    pepperLog.appendLog(TAG, "Roaming has been cancelled!");
                 }
             });
 
@@ -638,6 +683,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
         if (animating) {
             pepperLog.appendLog(TAG, "WAVING IN PROGRESS");
+            this.goToFuture.requestCancellation();
             return;
         }
 
