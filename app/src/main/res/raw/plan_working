@@ -312,7 +312,7 @@
 
         <Drive name="D-Interact" priority="2">
             <Senses>
-                <Sense name="DoNotAnnoy" value="1" comparator="bool"></Sense>
+                <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
             </Senses>
             <DriveElements>
 <!--                <DriveElement name="DE-Approach"></DriveElement>-->

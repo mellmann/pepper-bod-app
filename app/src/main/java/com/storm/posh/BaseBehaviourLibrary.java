@@ -258,19 +258,15 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             case "DoExplore":
                 doExplore();
                 break;
-
             case "PromptForBatteryCharge":
                 promptForBatteryCharge();
                 break;
-
             case "DismissHumans":
                 dismissHumans();
                 break;
-
-//            case "StopListening":
-//                stopListening();
-//                break;
-
+            case "DoMapping":
+                doMapping();
+                break;
             default:
                 Log.d(TAG, "UNKNOWN ACTION");
                 break;
@@ -646,8 +642,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
         FutureUtils
             .wait(0, TimeUnit.SECONDS)
-            .andThenConsume(ignore -> doHumans())
-            .andThenConsume(ignore -> doMapping());
+            .andThenConsume(ignore -> doHumans());
     }
 
     @Override

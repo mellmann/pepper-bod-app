@@ -55,7 +55,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private boolean heardStop = false;
     private boolean haveWavedLeft = false;
     private boolean haveWavedRight = false;
-//    private boolean interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
     private boolean turnedAround = false;
     private boolean firstGreet = false;
 
@@ -67,7 +66,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private Date nextGreetTime;
     private Date nextRoamTime;
     private Date lastRoamTime;
-//    private Date interruptTime; TODO: uncomment for fixed seconds interrupt timer
     private Date lastTimeTalk;
 
     private GoTo goTo;
@@ -89,14 +87,12 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         haveWavedRight = false;
         doNotAnnoy = true;
         heardStop = false;
-//        interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
         turnedAround = false;
         firstGreet = false;
         abilitiesHeld = false;
     }
 
     public boolean getBooleanSense(Sense sense) {
-//        pepperLog.appendLog(TAG, String.format("Getting boolean sense: %s", sense));
         boolean senseValue;
 
         switch (sense.getNameOfElement()) {
@@ -172,13 +168,11 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "ForgetAnnoy":
                 this.doNotAnnoy = false;
-//                this.interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
-//                this.interruptTime = null;
                 this.currentDistanceLvl = 99;
                 this.lastTimeTalk = null;
                 this.goToFuture.requestCancellation();
                 this.firstGreet = false;
-                releaseAbilities(holder);
+//                releaseAbilities(holder);
                 break;
 
             case "Hum":
@@ -205,7 +199,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "TurnAround":
                 turnAroundAndGo();
-                holdAbilities();
+//                holdAbilities();
                 break;
 
             default:
@@ -288,32 +282,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             pepperLog.appendLog(TAG, "No last time I heard something set yet");
             return false;
         }
-
-//        TODO: uncomment for fixed seconds interrupt timer
-//        if (interruptTime != null && now.before(interruptTime) && this.interactionTimerSet) {
-//            pepperLog.appendLog(TAG, "I am not ready to interrupt yet");
-//            return false;
-//        } else if (interruptTime != null && !now.before(interruptTime) && this.interactionTimerSet){
-//            pepperLog.appendLog(TAG, "It is about time to interrupt this interaction");
-//            return true;
-//        } else {
-//            pepperLog.appendLog(TAG, "Weird thing with interruption timer is happening.");
-//
-//            this.interactionTimerSet = true;
-//
-//            pepperLog.appendLog(TAG, "Setting interruption timer...");
-//            // set time to interrupt interaction
-//            int interactDelay = 45; // interrupt interaction 45 secs after first contact
-//            pepperLog.appendLog(TAG, String.format("Will interrupt this interaction in %d seconds", interactDelay));
-//            Calendar calendar_interrupt = Calendar.getInstance();
-//            calendar_interrupt.setTime(now);
-//            calendar_interrupt.add(Calendar.SECOND, interactDelay);
-//            interruptTime = calendar_interrupt.getTime();
-//
-//            pepperLog.appendLog(TAG, "Interruption timer set successfully.");
-//
-//            return false;
-//        }
     }
 
     public void startChat () {
@@ -387,7 +355,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         pepperLog.appendLog(TAG, "1");
 
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
-            // TODO: Only init this once
             pepperLog.appendLog(TAG, "2");
             PhraseSet phraseSet = PhraseSetBuilder.with(qiContext).withTexts("Stop", "Go Away", "No").build();
             pepperLog.appendLog(TAG, "3");
@@ -666,7 +633,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
             setAnimating(true);
 
-            double x = ThreadLocalRandom.current().nextDouble(0.5, 2);
+            double x = ThreadLocalRandom.current().nextDouble(0.5, 1.5);
             double y = ThreadLocalRandom.current().nextDouble(-0.5, 0.5);
 
             // Get the robot frame.
