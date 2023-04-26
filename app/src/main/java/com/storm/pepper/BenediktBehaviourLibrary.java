@@ -180,6 +180,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             case "Interrupt":
                 this.doNotAnnoy = true;
+                sayBye();
                 break;
 
             case "TurnAround":
@@ -483,8 +484,27 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         });
     }
 
-    private void turnAroundAndGo() {
+    private void sayBye() {
+        if (talking) {
+            pepperLog.appendLog(TAG, "Already talking, can't say goodbye now");
+            return;
+        }
 
+        String goodbye_phrase = "I think I walk away now";
+
+        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
+            this.talking = true;
+            Say say = SayBuilder.with(qiContext) // Create the builder with the context.
+                    .withText(goodbye_phrase) // Set the text to say.
+                    .withBodyLanguageOption(BodyLanguageOption.DISABLED)
+                    .build(); // Build the say action.
+
+            say.run();
+            this.talking = false;
+        });
+    }
+
+    private void turnAroundAndGo() {
         if (animating) {
             pepperLog.appendLog(TAG, "Can't turn around. Already animating");
             return;
