@@ -294,6 +294,10 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         });
     }
 
+    public Map<Integer, FreeFrame> getSavedLocations() {
+        return this.savedLocations;
+    }
+
     public void clearLocations() {
         savedLocations.clear();
         activity.updateLocationsCount(savedLocations.size());
@@ -315,8 +319,11 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         setActive();
         this.animating = true;
 
+        Frame robotFrame = actuation.robotFrame();
+
         // Extract the Frame asynchronously.
         Future<Frame> frameFuture = savedLocations.get(id).async().frame();
+
         frameFuture.andThenCompose(frame -> {
             // Create a GoTo action.
             goTo = GoToBuilder.with(qiContext)

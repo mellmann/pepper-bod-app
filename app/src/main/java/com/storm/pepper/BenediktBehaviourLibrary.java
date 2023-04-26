@@ -27,6 +27,7 @@ import com.aldebaran.qi.sdk.object.conversation.QiChatbot;
 import com.aldebaran.qi.sdk.object.conversation.Say;
 import com.aldebaran.qi.sdk.object.conversation.Topic;
 import com.aldebaran.qi.sdk.object.geometry.Transform;
+import com.aldebaran.qi.sdk.object.geometry.Vector3;
 import com.aldebaran.qi.sdk.object.human.Human;
 import com.aldebaran.qi.sdk.object.humanawareness.HumanAwareness;
 import com.aldebaran.qi.sdk.util.FutureUtils;
@@ -37,6 +38,7 @@ import com.storm.posh.plan.planelements.action.ActionEvent;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
@@ -67,13 +69,10 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private GoTo goTo;
     private Future<Void> goToFuture;
 
-
     private Future<ListenResult> listenFuture;
     private Future<Void> chatFuture;
 
-    public BenediktBehaviourLibrary() {
-        setInstance();
-    }
+    public BenediktBehaviourLibrary() { setInstance(); }
 
     public void reset() {
         super.reset();
@@ -165,7 +164,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 this.doNotAnnoy = false;
 //                this.interactionTimerSet = false; TODO: uncomment for fixed seconds interrupt timer
 //                this.interruptTime = null;
-                this.turnedAround = false;
                 this.currentDistanceLvl = 99;
                 this.lastTimeTalk = null;
                 this.goToFuture.requestCancellation();
@@ -561,7 +559,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
             // Create a FreeFrame representing the current robot frame.
             FreeFrame locationFrame = mapping.makeFreeFrame();
 
-            Transform transform = TransformBuilder.create().from2DTranslation(-0.5, 0.0);
+            Transform transform = TransformBuilder.create().from2DTranslation(-0.3, 0.0);
             locationFrame.update(robotFrame, transform, 0L);
 
             // Create a GoTo action.
@@ -590,8 +588,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                 }
             });
         });
-
-
     }
 
     public void roam() {
@@ -622,7 +618,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         }
 
         // set next time to hum
-        int roamDelay = ThreadLocalRandom.current().nextInt(30, 45);
+        int roamDelay = ThreadLocalRandom.current().nextInt(15, 20);
         pepperLog.appendLog(TAG, String.format("Next roam in %d seconds", roamDelay));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
@@ -633,11 +629,6 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
         FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
             setAnimating(true);
 
-
-//            double x = 0.0;
-//            double y = 0.0;
-
-            // TODO: uncomment
             Random rand = new Random();
             double x = 2 * rand.nextDouble();
             double y = 2 * rand.nextDouble();
@@ -661,6 +652,7 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
 
             // Execute the GoTo action asynchronously.
             goToFuture = goTo.async().run();
+
             goToFuture.thenConsume(future -> {
                 if (future.isSuccess()) {
                     setAnimating(false);
@@ -669,12 +661,31 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
                     setAnimating(false);
                     pepperLog.appendLog(TAG, "Roaming has error!");
                 } else if (future.isCancelled()) {
-                    setAnimating(false);
+                    // If roaming is cancellend and pepper could not reach target then turn around 
+                    pepperLog.appendLog(TAG, "Turning around started");
+                    // Create an animation object.
+                    Future<Animation> myAnimationFuture = AnimationBuilder.with(qiContext)
+                            .withResources(R.raw.turn_around)
+                            .buildAsync();
+
+                    myAnimationFuture.andThenConsume(myAnimation -> {
+                        Animate animate = AnimateBuilder.with(qiContext)
+                                .withAnimation(myAnimation)
+                                .build();
+
+                        // Run the action synchronously in this thread
+                        animate.run();
+
+                        pepperLog.appendLog(TAG, "Turning around finished");
+                        setAnimating(false);
+                    });
+
                     pepperLog.appendLog(TAG, "Roaming has been cancelled!");
                 }
             });
 
         });
+
 
     }
 
