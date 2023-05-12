@@ -16,9 +16,15 @@
                 <Action name="ApproachHuman"></Action>
             </Actions>
         </ActionPattern>
-        <ActionPattern name="AP-ListenForStop">
+        <ActionPattern name="AP-Interrupt">
             <Actions>
-                <Action name="ListenForStop"></Action>
+                <Action name="StopListening"></Action>
+                <Action name="Interrupt"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-ListenForUser">
+            <Actions>
+                <Action name="ListenForUser"></Action>
             </Actions>
         </ActionPattern>
         <ActionPattern name="AP-StopListening">
@@ -60,11 +66,22 @@
         <ActionPattern name="AP-Hum">
             <Actions>
                 <Action name="Hum"></Action>
+                <Action name="Roam"></Action>
             </Actions>
         </ActionPattern>
         <ActionPattern name="AP-DismissHumans">
             <Actions>
                 <Action name="DismissHumans"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Greet">
+            <Actions>
+                <Action name="Greet"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-TurnAround">
+            <Actions>
+                <Action name="TurnAround"></Action>
             </Actions>
         </ActionPattern>
     </ActionPatterns>
@@ -88,9 +105,10 @@
                 <Sense name="HeardStop" value="1" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-        <CompetenceElement name="CE-ListenForStop" triggers="AP-ListenForStop">
+        <CompetenceElement name="CE-ListenForUser" triggers="AP-ListenForUser">
             <Senses>
                 <Sense name="Listening" value="0" comparator="bool"></Sense>
+                <Sense name="Talking" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
         <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
@@ -110,6 +128,16 @@
                 <Sense name="HaveWavedRight" value="1" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
+        <CompetenceElement name="CE-Greet" triggers="AP-Greet">
+            <Senses>
+                <Sense name="Listening" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-StopListenForGreet" triggers="AP-StopListening">
+            <Senses>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
 
         <CompetenceElement name="CE-Forget" triggers="AP-Forget">
             <Senses>
@@ -119,10 +147,14 @@
         </CompetenceElement>
         <CompetenceElement name="CE-Hum" triggers="AP-Hum">
             <Senses>
-                <Sense name="IdleTime" value="10" comparator="gt"></Sense>
+                <Sense name="IdleTime" value="20" comparator="gt"></Sense>
             </Senses>
         </CompetenceElement>
-
+        <CompetenceElement name="CE-TurnAround" triggers="AP-TurnAround">
+            <Senses>
+                <Sense name="TurnedAround" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
         <CompetenceElement name="CE-DismissHumans" triggers="AP-DismissHumans">
             <Senses>
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
@@ -133,9 +165,7 @@
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-
     </CompetenceElements>
-
     <Competences>
         <Competence name="C-Mapping">
             <CompetenceElements>
@@ -154,9 +184,15 @@
                 <CompetenceElement name="CE-Approach"></CompetenceElement>
             </CompetenceElements>
         </Competence>
+        <Competence name="C-Greet">
+            <CompetenceElements>
+                <CompetenceElement name="CE-StopListenForGreet"></CompetenceElement>
+                <CompetenceElement name="CE-Greet"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
         <Competence name="C-Annoy">
             <CompetenceElements>
-                <CompetenceElement name="CE-ListenForStop"></CompetenceElement>
+                <CompetenceElement name="CE-ListenForUser"></CompetenceElement>
                 <CompetenceElement name="CE-Stop"></CompetenceElement>
                 <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
                 <CompetenceElement name="CE-WaveRight"></CompetenceElement>
@@ -167,6 +203,7 @@
         <Competence name="C-SelfEntertain">
             <CompetenceElements>
                 <CompetenceElement name="CE-Forget"></CompetenceElement>
+                <CompetenceElement name="CE-TurnAround"></CompetenceElement>
                 <CompetenceElement name="CE-Hum"></CompetenceElement>
             </CompetenceElements>
         </Competence>
@@ -181,23 +218,52 @@
                 <Sense name="BatteryLow" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
+        <DriveElement name="DE-Interrupt" triggers="AP-Interrupt">
+            <Senses>
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
+                <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
 
+<!--                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+
+                <Sense name="ReadyToGreet" value="0" comparator="bool"></Sense>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
+                <Sense name="ReadyToInterrupt" value="1" comparator="bool"></Sense>
+                <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-Greet" triggers="C-Greet">
+            <Senses>
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
+                <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
+
+<!--                TODO: uncomment-->
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+
+                <Sense name="ReadyToGreet" value="1" comparator="bool"></Sense>
+                <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
+            </Senses>
+        </DriveElement>
 
         <DriveElement name="DE-Annoy" triggers="C-Annoy" checkTime="0">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
+<!--                TODO: uncomment-->
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-                <Sense name="HumanClose" value="1" comparator="bool"></Sense>
+<!--                <Sense name="HumanClose" value="1" comparator="bool"></Sense>-->
+
                 <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
             </Senses>
         </DriveElement>
+
         <DriveElement name="DE-Approach" triggers="C-Approach" checkTime="1">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
                 <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-                <Sense name="HumanClose" value="0" comparator="bool"></Sense>
+<!--                <Sense name="HumanClose" value="0" comparator="bool"></Sense>-->
                 <!--Sense name="HumanEngaged" value="0" comparator="bool"></Sense-->
             </Senses>
         </DriveElement>
@@ -209,10 +275,6 @@
                 <Sense name="Listening" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
-
-
-
-
         <DriveElement name="DE-Explore" triggers="AP-Explore" checkTime="10">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
@@ -224,8 +286,9 @@
         <DriveElement name="DE-EntertainSelf" triggers="C-SelfEntertain" checkTime="0">
             <Senses>
                 <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
-                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
-                <Sense name="IdleTime" value="15" comparator="gt"></Sense>
+<!--                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>-->
+                <Sense name="ReadyToSelfEntertain" value="1" comparator="bool"></Sense>
+                <Sense name="IdleTime" value="5" comparator="gt"></Sense>
             </Senses>
         </DriveElement>
     </DriveElements>
@@ -249,24 +312,28 @@
 
         <Drive name="D-Interact" priority="2">
             <Senses>
-                <Sense name="DoNotAnnoy" value="1" comparator="bool"></Sense>
+                <Sense name="DoNotAnnoy" value="0" comparator="bool"></Sense>
             </Senses>
             <DriveElements>
-                <DriveElement name="DE-Approach"></DriveElement>
+<!--                <DriveElement name="DE-Approach"></DriveElement>-->
+                <DriveElement name="DE-Interrupt"></DriveElement>
+                <DriveElement name="DE-Greet"></DriveElement>
                 <DriveElement name="DE-Annoy"></DriveElement>
                 <DriveElement name="DE-Reset"></DriveElement>
             </DriveElements>
         </Drive>
 
-        <Drive name="D-Explore" priority="3">
+
+
+        <Drive name="D-EntertainSelf" priority="3">
             <DriveElements>
-                <DriveElement name="DE-Explore"></DriveElement>
+                <DriveElement name="DE-EntertainSelf"></DriveElement>
             </DriveElements>
         </Drive>
 
-        <Drive name="D-EntertainSelf" priority="4">
+        <Drive name="D-Explore" priority="4">
             <DriveElements>
-                <DriveElement name="DE-EntertainSelf"></DriveElement>
+                <DriveElement name="DE-Explore"></DriveElement>
             </DriveElements>
         </Drive>
 

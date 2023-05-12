@@ -16,7 +16,6 @@ import com.aldebaran.qi.sdk.design.activity.conversationstatus.SpeechBarDisplayS
 import com.aldebaran.qi.sdk.util.FutureUtils;
 import com.storm.posh.plan.planelements.PlanElement;
 import com.storm.posh.plan.planelements.Sense;
-import com.storm.posh.plan.planelements.drives.DriveCollection;
 import com.storm.posh.plan.reader.xposh.XPOSHPlanReader;
 import com.storm.posh.BaseBehaviourLibrary;
 import com.storm.posh.Planner;
@@ -84,10 +83,8 @@ public class MainActivity extends RobotActivity implements PepperLog {
         planner = new Planner(this);
 
         // configure for chosen plan
-        planResourceId = R.raw.plan_die;
-        behaviourLibrary = new DieBehaviourLibrary();
-//        planResourceId = R.raw.plan_annoy;
-//        behaviourLibrary = new AnnoyBehaviourLibrary();
+        planResourceId = R.raw.plan_benedikt;
+        behaviourLibrary = new BenediktBehaviourLibrary();
         // end configure for chosen plan
 
         behaviourLibrary.setPepperLog(this);
