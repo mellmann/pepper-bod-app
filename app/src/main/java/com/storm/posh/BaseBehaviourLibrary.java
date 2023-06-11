@@ -35,6 +35,12 @@ import com.aldebaran.qi.sdk.object.holder.Holder;
 import com.aldebaran.qi.sdk.object.human.Human;
 import com.aldebaran.qi.sdk.object.humanawareness.EngageHuman;
 import com.aldebaran.qi.sdk.object.humanawareness.HumanAwareness;
+import com.aldebaran.qi.sdk.object.power.FlapSensor;
+import com.aldebaran.qi.sdk.object.power.FlapState;
+import com.aldebaran.qi.sdk.object.power.Power;
+import com.aldebaran.qi.sdk.object.touch.Touch;
+import com.aldebaran.qi.sdk.object.touch.TouchSensor;
+import com.aldebaran.qi.sdk.object.touch.TouchState;
 import com.aldebaran.qi.sdk.util.FutureUtils;
 import com.storm.pepper.MainActivity;
 import com.storm.pepper.PepperLog;
@@ -78,6 +84,19 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     protected boolean mappingInProgress = false;
     protected boolean mappingComplete = false;
 
+    // adding boolean senses for touch sensor
+    protected boolean touchHandRight = false;
+    protected boolean touchHandLeft = false;
+    protected boolean touchHead = false;
+    protected boolean touchBumperRight = false;
+    protected boolean touchBumperLeft = false;
+    protected boolean touchBumperBack = false;
+
+    protected boolean chargingFlapUp = false;
+
+    private Power power;
+    private FlapSensor chargingFlap;
+
     // Store the saved locations.
     private Map<Integer, FreeFrame> savedLocations = new HashMap<>();
 
@@ -89,6 +108,15 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
     protected Human recommendedHumanToEngage;
 
+    private Future<Void> goToFuture;
+
+    // Store the touch sensors
+    protected TouchSensor touchSensorHead;
+    protected TouchSensor touchSensorHandRight;
+    protected TouchSensor touchSensorHandLeft;
+    protected TouchSensor touchSensorBumperLeft;
+    protected TouchSensor touchSensorBumperRight;
+    protected TouchSensor touchSensorBumperBack;
 
     // A boolean used to store the abilities status.
     private boolean abilitiesHeld = false;
@@ -113,6 +141,8 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     protected Future<Void> lookAtFuture;
 
     protected Chat chat;
+
+    protected Touch touch;
 
     protected Date lastActive;
 
@@ -200,7 +230,27 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             case "SafeToMap":
                 senseValue = safeToMap;
                 break;
-
+            case "TouchRightHand":
+                senseValue = touchHandRight;
+                break;
+            case "TouchLeftHand":
+                senseValue = touchHandLeft;
+                break;
+            case "TouchHead":
+                senseValue = touchHead;
+                break;
+            case "TouchBumperLeft":
+                senseValue = touchBumperLeft;
+                break;
+            case "TouchBumperRight":
+                senseValue = touchBumperRight;
+                break;
+            case "TouchBumoerBack":
+                senseValue = touchBumperBack;
+                break;
+            case "FlapState":
+                senseValue = chargingFlapUp;
+                break;
             default:
                 senseValue = false;
                 break;
@@ -436,6 +486,13 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         this.humanPresent = false;
         humanAwareness = qiContext.getHumanAwareness();
 
+        /* humanAwareness.addOnHumansAroundChangedListener(new HumanAwareness.OnHumansAroundChangedListener() {
+            @Override
+            public void onHumansAroundChanged(List<Human> list) {
+
+            }
+        }); */
+
         humanAwareness.addOnHumansAroundChangedListener(this::updateHumansAround);
         humanAwareness.addOnRecommendedHumanToEngageChangedListener(this::updateHumanToEngage);
     }
@@ -631,6 +688,29 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             humanAwareness.removeAllOnHumansAroundChangedListeners();
             humanAwareness.removeAllOnEngagedHumanChangedListeners();
         }
+
+        // Remove onStateChanged listeners for touch sensors.
+        if (touchSensorHead != null) {
+            touchSensorHead.removeAllOnStateChangedListeners();
+        }
+        if (touchSensorHandRight != null) {
+            touchSensorHandRight.removeAllOnStateChangedListeners();
+        }
+        if (touchSensorHandLeft != null) {
+            touchSensorHandLeft.removeAllOnStateChangedListeners();
+        }
+        if (touchSensorBumperLeft != null) {
+            touchSensorBumperLeft.removeAllOnStateChangedListeners();
+        }
+        if (touchSensorBumperRight != null) {
+            touchSensorBumperRight.removeAllOnStateChangedListeners();
+        }
+        if (touchSensorBumperBack != null) {
+            touchSensorBumperBack.removeAllOnStateChangedListeners();
+        }
+        if(chargingFlap != null) {
+            chargingFlap.removeAllOnStateChangedListeners();
+        }
     }
 
     @Override
@@ -639,6 +719,28 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         setQiContext(qiContext);
         actuation = qiContext.getActuation();
         mapping = qiContext.getMapping();
+        touch = qiContext.getTouch();
+        power = qiContext.getPower();
+
+        // initializing touch sensors
+        touchSensorHead = touch.getSensor("Head/Touch");
+        touchSensorHandRight = touch.getSensor("RHand/Touch");;
+        touchSensorHandLeft = touch.getSensor("LHand/Touch");
+        touchSensorBumperLeft = touch.getSensor("Bumper/FrontLeft");;
+        touchSensorBumperRight = touch.getSensor("Bumper/FrontRight");
+        touchSensorBumperBack = touch.getSensor("Bumper/Back");
+
+        // add touch listeners
+        touchSensorHead.addOnStateChangedListener(this::touchHeadChanged);
+        touchSensorHandLeft.addOnStateChangedListener(this::touchHandLeftChanged);
+        touchSensorHandRight.addOnStateChangedListener(this::touchHandRightChanged);
+        touchSensorBumperLeft.addOnStateChangedListener(this::touchBumperLeftChanged);
+        touchSensorBumperRight.addOnStateChangedListener(this::touchBumperRightChanged);
+        touchSensorBumperBack.addOnStateChangedListener(this::touchBumperBackChanged);
+
+        // add flap listener
+        chargingFlap = power.getChargingFlap();
+        chargingFlap.addOnStateChangedListener(this::chargingFlapChanged);
 
         FutureUtils
             .wait(0, TimeUnit.SECONDS)
@@ -662,10 +764,6 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         pepperLog.appendLog(TAG, String.format("Animating: %b", state));
         this.animating = state;
     }
-
-
-    // Store the action execution future.
-    private Future<Void> goToFuture;
 
     public double getDistanceToHumanToGreet() {
         HumanAwareness humanAwareness = qiContext.getHumanAwareness();
@@ -761,31 +859,6 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     private boolean isHumanClose() {
         pepperLog.appendLog(TAG, "Is human close? Always yes");
         return true;
-//        if (humans.isEmpty()) {
-//            pepperLog.appendLog(TAG, "No humans, no close");
-//            return false;
-//        }
-//
-//        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
-//            pepperLog.appendLog(TAG, "STEP 1");
-//            // Get the robot frame.
-//            Frame robotFrame = qiContext.getActuation().robotFrame();
-//
-//            pepperLog.appendLog(TAG, "STEP 2");
-//            Human closestHuman = getClosestHuman(humans);
-//
-//            pepperLog.appendLog(TAG, "STEP 3");
-//            double distance = getDistance(robotFrame, closestHuman);
-//            pepperLog.appendLog(TAG, String.format("Human distance is %f", distance));
-//
-//            pepperLog.appendLog(TAG, "STEP 4");
-//            if (distance > 1.0) {
-//                return false;
-//            } else {
-//                return true;
-//            }
-//        });
-//        return false;
     }
 
     public void approachHuman() {
@@ -799,9 +872,6 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         } else {
             setActive();
         }
-
-//        humanAwareness = qiContext.getHumanAwareness();
-//        Human recommendedHuman = humanAwareness.getRecommendedHumanToEngage();
 
         if (recommendedHumanToEngage != null) {
             pepperLog.appendLog(TAG, "Approaching human...");
@@ -929,4 +999,37 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     public boolean isMappingInProgress() {
         return mappingInProgress;
     }
+
+
+    // Implementation of touch methods
+    public void touchHeadChanged(TouchState touchState) {
+        touchHead = touchState.getTouched() ? true : false;
+        Log.i(TAG, "Sensor " + (touchHead ? "touched" : "released") + " at " + touchState.getTime());
+    }
+    public void touchHandLeftChanged(TouchState touchState) {
+        touchHandLeft = touchState.getTouched() ? true : false;
+        Log.i(TAG, "Sensor " + (touchHandLeft ? "touched" : "released") + " at " + touchState.getTime());
+    }
+    public void touchHandRightChanged(TouchState touchState) {
+        touchHandRight = touchState.getTouched() ? true : false;
+        Log.i(TAG, "Sensor " + (touchHandRight ? "touched" : "released") + " at " + touchState.getTime());
+    }
+    public void touchBumperLeftChanged(TouchState touchState) {
+        touchBumperLeft = touchState.getTouched() ? true : false;
+        Log.i(TAG, "Sensor " + (touchBumperLeft ? "touched" : "released") + " at " + touchState.getTime());
+    }
+    public void touchBumperRightChanged(TouchState touchState) {
+        touchBumperRight = touchState.getTouched() ? true : false;
+        Log.i(TAG, "Sensor " + (touchBumperRight ? "touched" : "released") + " at " + touchState.getTime());
+    }
+    public void touchBumperBackChanged(TouchState touchState) {
+        touchBumperBack = touchState.getTouched() ? true : false;
+        Log.i(TAG, "Sensor " + (touchBumperBack ? "touched" : "released") + " at " + touchState.getTime());
+    }
+
+    public void chargingFlapChanged(FlapState flapState) {
+        chargingFlapUp = flapState.getOpen() ? true : false;
+        Log.i(TAG, "Sensor " + (chargingFlapUp ? "open" : "closed") + " at " + flapState.getTime());
+    }
+
 }

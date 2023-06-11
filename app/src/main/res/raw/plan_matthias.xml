@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plan>
+    <ActionPatterns>
+        <ActionPattern name="AP-BatteryPrompt">
+            <Actions>
+                <Action name="PromptForBatteryCharge"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Interrupt">
+            <Actions>
+                <Action name="StopListening"></Action>
+                <Action name="Interrupt"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-ListenForUser">
+            <Actions>
+                <Action name="ListenForUser"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-StopListening">
+            <Actions>
+                <Action name="StopListening"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-DoNotAnnoy">
+            <Actions>
+                <Action name="DoNotAnnoy"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-WaveLeft">
+            <Actions>
+                <Action name="WaveLeft"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-WaveRight">
+            <Actions>
+                <Action name="WaveRight"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-ClearWaving">
+            <Actions>
+                <Action name="ClearWaving"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Mapping">
+            <Actions>
+                <Action name="DoMapping"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Forget">
+            <Actions>
+                <Action name="ForgetAnnoy"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Hum">
+            <Actions>
+                <Action name="Hum"></Action>
+                <Action name="Roam"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-DismissHumans">
+            <Actions>
+                <Action name="DismissHumans"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-Greet">
+            <Actions>
+                <Action name="Greet"></Action>
+            </Actions>
+        </ActionPattern>
+        <ActionPattern name="AP-TurnAround">
+            <Actions>
+                <Action name="TurnAround"></Action>
+            </Actions>
+        </ActionPattern>
+    </ActionPatterns>
+
+    <CompetenceElements>
+        <CompetenceElement name="CE-BatteryPrompt" triggers="AP-BatteryPrompt">
+            <Senses>
+                <Sense name="Talking" value="0" comparator="bool"></Sense>
+                <Sense name="Listening" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-Stop" triggers="AP-DoNotAnnoy">
+            <Senses>
+                <Sense name="HeardStop" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-ListenForUser" triggers="AP-ListenForUser">
+            <Senses>
+                <Sense name="Listening" value="0" comparator="bool"></Sense>
+                <Sense name="Talking" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
+            <Senses>
+                <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-WaveRight" triggers="AP-WaveRight">
+            <Senses>
+                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
+                <Sense name="HaveWavedRight" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-ClearWaving" triggers="AP-ClearWaving">
+            <Senses>
+                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
+                <Sense name="HaveWavedRight" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-Greet" triggers="AP-Greet">
+            <Senses>
+                <Sense name="Listening" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-StopListenForGreet" triggers="AP-StopListening">
+            <Senses>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+
+        <CompetenceElement name="CE-Forget" triggers="AP-Forget">
+            <Senses>
+                <Sense name="DoNotAnnoy" value="1" comparator="bool"></Sense>
+                <Sense name="IdleTime" value="60" comparator="gt"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-Hum" triggers="AP-Hum">
+            <Senses>
+                <Sense name="IdleTime" value="20" comparator="gt"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-TurnAround" triggers="AP-TurnAround">
+            <Senses>
+                <Sense name="TurnedAround" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-DismissHumans" triggers="AP-DismissHumans">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-Mapping" triggers="AP-Mapping">
+            <Senses>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+    </CompetenceElements>
+    <Competences>
+        <Competence name="C-Mapping">
+            <CompetenceElements>
+                <CompetenceElement name="CE-DismissHumans"></CompetenceElement>
+                <CompetenceElement name="CE-Mapping"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-BatteryPrompt">
+            <CompetenceElements>
+                <CompetenceElement name="CE-BatteryPrompt"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-Greet">
+            <CompetenceElements>
+                <CompetenceElement name="CE-StopListenForGreet"></CompetenceElement>
+                <CompetenceElement name="CE-Greet"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-Annoy">
+            <CompetenceElements>
+                <CompetenceElement name="CE-ListenForUser"></CompetenceElement>
+                <CompetenceElement name="CE-Stop"></CompetenceElement>
+                <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
+                <CompetenceElement name="CE-WaveRight"></CompetenceElement>
+                <CompetenceElement name="CE-ClearWaving"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+        <Competence name="C-SelfEntertain">
+            <CompetenceElements>
+                <CompetenceElement name="CE-Forget"></CompetenceElement>
+                <CompetenceElement name="CE-TurnAround"></CompetenceElement>
+                <CompetenceElement name="CE-Hum"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+    </Competences>
+
+    <DriveElements>
+        <DriveElement name="DE-Mapping" triggers="C-Mapping" checkTime="5">
+        </DriveElement>
+
+        <DriveElement name="DE-BatteryPrompt" triggers="C-BatteryPrompt" checkTime="10">
+            <Senses>
+                <Sense name="BatteryLow" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-Interrupt" triggers="AP-Interrupt">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="ReadyToGreet" value="0" comparator="bool"></Sense>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
+                <Sense name="ReadyToInterrupt" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-Greet" triggers="C-Greet">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="ReadyToGreet" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-Annoy" triggers="C-Annoy" checkTime="0">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-Reset" triggers="AP-StopListening" checkTime="0">
+            <Senses>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="Listening" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-EntertainSelf" triggers="C-SelfEntertain" checkTime="0">
+            <Senses>
+                <Sense name="ReadyToSelfEntertain" value="1" comparator="bool"></Sense>
+                <Sense name="IdleTime" value="5" comparator="gt"></Sense>
+            </Senses>
+        </DriveElement>
+    </DriveElements>
+
+    <Drives>
+
+        <Drive name="D-Map" priority="1">
+            <Senses>
+                <Sense name="MappingComplete" value="1" comparator="bool"></Sense>
+            </Senses>
+            <DriveElements>
+                <DriveElement name="DE-Mapping"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-Battery" priority="2">
+            <DriveElements>
+                <DriveElement name="DE-BatteryPrompt"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-Interact" priority="3">
+            <Senses>
+                <!-- Senses on the Drive Level are interpreted as GOALS so if the sense is not yet achieved, the drive elements will be triggered-->
+                <Sense name="DoNotAnnoy" value="1" comparator="bool"></Sense>
+            </Senses>
+            <DriveElements>
+                <DriveElement name="DE-Interrupt"></DriveElement>
+                <DriveElement name="DE-Greet"></DriveElement>
+                <DriveElement name="DE-Annoy"></DriveElement>
+                <DriveElement name="DE-Reset"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-EntertainSelf" priority="4">
+            <DriveElements>
+                <DriveElement name="DE-EntertainSelf"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+    </Drives>
+</Plan>

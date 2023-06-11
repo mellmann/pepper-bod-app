@@ -2,10 +2,7 @@
 <Plan>
     <ActionPatterns>
         <ActionPattern name="AP-WaveLeft">
-            <Action name="WaveLeft"></Action>
-        </ActionPattern>
-        <ActionPattern name="AP-WaveRight">
-            <Action name="WaveRight"></Action>
+            <Action name="Roam"></Action>
         </ActionPattern>
     </ActionPatterns>
 
@@ -34,19 +31,14 @@
         <DriveElement name="DE-WaveLeft" triggers="C-WaveLeft" checkTime="0">
             <Senses>
                 <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
-            </Senses>
-        </DriveElement>
-        <DriveElement name="DE-WaveRight" triggers="AP-WaveRight" checkTime="0">
-            <Senses>
-                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
-                <Sense name="HaveWavedRight" value="0" comparator="bool"></Sense>
+                <Sense name="TouchRightHand" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
     </DriveElements>
 
 
     <Drives>
-        <Drive name="D-WaveLeft">
+        <Drive name="D-Touch">
             <Senses>
                 <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
             </Senses>
@@ -54,13 +46,16 @@
                 <DriveElement name="DE-WaveLeft"></DriveElement>
             </DriveElements>
         </Drive>
-        <Drive name="D-WaveRight">
+
+        <!--<Drive name="D-ClearAll">
             <Senses>
-                <Sense name="HaveWavedRight" value="1" comparator="bool"></Sense>
+                <Sense name="ClearedAll" value="1" comparator="bool"></Sense>
             </Senses>
             <DriveElements>
-                <DriveElement name="DE-WaveRight"></DriveElement>
+                <DriveElement name="DE-TurnAround"></DriveElement>
             </DriveElements>
-        </Drive>
+        </Drive>-->
+
+
     </Drives>
 </Plan>
