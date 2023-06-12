@@ -60,6 +60,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     private Holder holder;
 
     private BasicEmotionObserver basicEmotionObserver;
+    protected BasicEmotion currentEmotion;
 
     public POSHBehaviourLibrary() {
         setInstance();
@@ -142,7 +143,13 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     }
 
     public double getDoubleSense(Sense sense) {
-        return super.getDoubleSense(sense);
+        double senseValue = 0.0;
+
+        if (sense.getNameOfElement().equals("EmotionState")) {
+            senseValue = currentEmotion.ordinal();
+        }
+
+        return senseValue;
     }
 
     public void executeAction(ActionEvent action) {
@@ -484,6 +491,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     @Override
     public void onBasicEmotionChanged(BasicEmotion basicEmotion) {
         // here goes the variable to store the basicEmotion state
+        currentEmotion = basicEmotion;
         pepperLog.appendLog(TAG, "Basic emotion changed: " + basicEmotion);
     }
 }
