@@ -742,6 +742,12 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         chargingFlap = power.getChargingFlap();
         chargingFlap.addOnStateChangedListener(this::chargingFlapChanged);
 
+        /* humanAwareness.addOnEngagedHumanChangedListener(human -> {
+            if (human != null) {
+                humanEngaged = true;
+            }
+        }); */
+
         FutureUtils
             .wait(0, TimeUnit.SECONDS)
             .andThenConsume(ignore -> doHumans());

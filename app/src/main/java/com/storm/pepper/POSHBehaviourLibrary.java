@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
+public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasicEmotionChangedListener {
     private static final String TAG = POSHBehaviourLibrary.class.getSimpleName();
 
     private AnimationExecutor animExecutor = new AnimationExecutor();
@@ -59,7 +59,13 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
     // The holder for the abilities.
     private Holder holder;
 
-    public POSHBehaviourLibrary() { setInstance(); }
+    private BasicEmotionObserver basicEmotionObserver;
+
+    public POSHBehaviourLibrary() {
+        setInstance();
+        basicEmotionObserver = new BasicEmotionObserver();
+        basicEmotionObserver.setListener(this);
+    }
 
     public void reset() {
         super.reset();
@@ -435,6 +441,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
     // tidy up listeners
     public void removeListeners() {
         super.removeListeners();
+        basicEmotionObserver.setListener(null);
+        basicEmotionObserver = null;
     }
 
 
@@ -442,6 +450,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
     @Override
     public void onRobotFocusGained(QiContext qiContext) {
         super.onRobotFocusGained(qiContext);
+        basicEmotionObserver.startObserving(qiContext);
     }
 
     @Override
@@ -450,7 +459,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
         if (goTo != null) {
             goTo.removeAllOnStartedListeners();
         }
-
+        basicEmotionObserver.stopObserving();
         super.onRobotFocusLost();
     }
 
@@ -471,4 +480,10 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
     public void setReachedPosition(boolean state) { this.reachedPosition = state; }
 
     public void setReset(boolean state) { this.haveReset = state; }
+
+    @Override
+    public void onBasicEmotionChanged(BasicEmotion basicEmotion) {
+        // here goes the variable to store the basicEmotion state
+        pepperLog.appendLog(TAG, "Basic emotion changed: " + basicEmotion);
+    }
 }
