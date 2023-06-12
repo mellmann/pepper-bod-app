@@ -55,37 +55,40 @@ public class AnimationExecutor {
                     .withAnimation(myAnimation)
                     .build();
             // Run the action synchronously in this thread
-            animate.run();
+            animate.async().run();
 
-            switch(toAnimate) {
-                case "WaveLeft":
-                    pbl.haveWavedLeft = true;
-                    break;
-                case "WaveRight":
-                    pbl.haveWavedRight = true;
-                    break;
-                case "TurnAround":
-                    pbl.turnedAround = true;
-                    break;
-                case "Hug":
-                    pbl.haveHugged = true;
-                    break;
-                case "HighFive":
-                    pbl.haveHighFived = true;
-                    break;
-                case "ShakeHands":
-                    pbl.haveShakedHands = true;
-                    break;
-                case "CheckWatch":
-                    pbl.haveCheckedWatch = true;
-                    break;
-                case "WashHands":
-                    pbl.haveWashedHands = true;
-                case "Laugh":
-                    pbl.hasLaughed = true;
-                default:
-                    break;
-            }
+            animate.addOnLabelReachedListener((label, time) -> {
+                // Called when a label is reached.
+                switch(toAnimate) {
+                    case "WaveLeft":
+                        pbl.haveWavedLeft = true;
+                        break;
+                    case "WaveRight":
+                        pbl.haveWavedRight = true;
+                        break;
+                    case "TurnAround":
+                        pbl.turnedAround = true;
+                        break;
+                    case "Hug":
+                        pbl.haveHugged = true;
+                        break;
+                    case "HighFive":
+                        pbl.haveHighFived = true;
+                        break;
+                    case "ShakeHands":
+                        pbl.haveShakedHands = true;
+                        break;
+                    case "CheckWatch":
+                        pbl.haveCheckedWatch = true;
+                        break;
+                    case "WashHands":
+                        pbl.haveWashedHands = true;
+                    case "Laugh":
+                        pbl.hasLaughed = true;
+                    default:
+                        break;
+                }
+            });
         });
     }
 }

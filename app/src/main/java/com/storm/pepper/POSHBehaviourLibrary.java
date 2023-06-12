@@ -163,7 +163,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
                 executeAnimation("HighFive");
                 break;
             case "ShakeHands":
-                executeAnimation("ShankeHands");
+                executeAnimation("ShakeHands");
                 break;
             case "CheckWatch":
                 executeAnimation("CheckWatch");
@@ -194,6 +194,9 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
                 break;
             case "Interrupt":
                 this.turnedAround = false;
+                break;
+            case "ForgetHuman":
+                haveShakedHands = false;
                 break;
             default:
                 super.executeAction(action);
@@ -262,7 +265,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary {
                     return;
                 }
                 this.currentDistanceLvl = 3;
-                executeAnimation("Checkwatch");
+                executeAnimation("CheckWatch");
                 // animation: "You are far away, please get a little closer!";
             } else if (distance > 2) {
                 distanceLvl = 2;
