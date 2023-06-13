@@ -30,6 +30,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
 
     private AnimationExecutor animExecutor = new AnimationExecutor();
     private GoToExecutor gotoExecutor = new GoToExecutor();
+    private PepperLookProvider lookProvider = new PepperLookProvider();
 
     protected boolean haveWavedLeft = false;
     protected boolean haveWavedRight = false;
@@ -193,6 +194,9 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             case "ApproachHuman":
                 approachHuman();
                 break;
+            case "FollowHuman":
+                searchHumans();
+                break;
             case "HoldAbilities":
                 holdAbilities();
                 break;
@@ -201,6 +205,9 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
                 break;
             case "Roam":
                 roam();
+                break;
+            case "LookUp":
+                lookProvider.lookUp(qiContext, actuation);
                 break;
             case "Greet":
                 greet();
@@ -242,7 +249,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         pepperLog.appendLog(TAG, "Animation " + toAnimate + " starting");
         setAnimating(true);
         // call animExecutor
-        animExecutor.animate(toAnimate, qiContext, this);
+        animExecutor.animate(toAnimate, qiContext, this, pepperLog);
         setAnimating(false);
         pepperLog.appendLog(TAG, "Anination " + toAnimate + " finished");
     }
@@ -320,16 +327,10 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
                 this.goToFuture.requestCancellation();
                 pepperLog.appendLog(TAG, "Cancelling roaming, this took too long!");
                 return;
-            } else if (!this.turnedAround) {
-                // cancel current goto if turning around has still not finished
-                this.goToFuture.requestCancellation();
-                pepperLog.appendLog(TAG, "Cancelling turnAround, this took too long!");
-                return;
             } else {
                 pepperLog.appendLog(TAG, String.format("Already animating, cannot roam"));
                 return;
             }
-
         } else if (nextRoamTime != null && now.before(nextRoamTime)) {
             pepperLog.appendLog(TAG, "Don't want to roam yet");
             return;
@@ -337,80 +338,29 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             pepperLog.appendLog(TAG, "Bored, gonna roam!");
         }
 
-        // set next time to hum
-        int roamDelay = ThreadLocalRandom.current().nextInt(25, 35);
+        // set next time to roam
+        int roamDelay = ThreadLocalRandom.current().nextInt(20, 30);
         pepperLog.appendLog(TAG, String.format("Next roam in %d seconds", roamDelay));
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
         calendar.add(Calendar.SECOND, roamDelay);
+
         nextRoamTime = calendar.getTime();
         lastRoamTime = now;
 
-        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume((ignore) -> {
-            setAnimating(true);
-
-            double x = ThreadLocalRandom.current().nextDouble(0.5, 1.5);
-            double y = ThreadLocalRandom.current().nextDouble(-0.5, 0.5);
-
-            // Get the robot frame.
-            Frame robotFrame = actuation.robotFrame();
-
-            // Create a FreeFrame representing the current robot frame.
-            FreeFrame locationFrame = mapping.makeFreeFrame();
-
-            Transform transform = TransformBuilder.create().from2DTranslation(x, y);
-            locationFrame.update(robotFrame, transform, 0L);
-
-            // Create a GoTo action.
-            goTo = GoToBuilder.with(qiContext)
-                    .withFrame(locationFrame.frame())
-                    .build();
-
-            // Display text when the GoTo action starts.
-            goTo.addOnStartedListener(() -> pepperLog.appendLog(TAG, "Roaming started"));
-
-            // Execute the GoTo action asynchronously.
-            goToFuture = goTo.async().run();
-
-            goToFuture.thenConsume(future -> {
-                if (future.isSuccess()) {
-                    setAnimating(false);
-                    pepperLog.appendLog(TAG, "Roaming finished with success!");
-                } else if (future.hasError()) {
-                    setAnimating(false);
-                    pepperLog.appendLog(TAG, "Roaming has error!");
-                } else if (future.isCancelled()) {
-                    pepperLog.appendLog(TAG, "Roaming has been cancelled, will turn around!");
-                    // If roaming is cancelled and pepper could not reach target then turn around
-                    pepperLog.appendLog(TAG, "Turning around started");
-                    // Create an animation object.
-                    Future<Animation> myAnimationFuture = AnimationBuilder.with(qiContext)
-                            .withResources(R.raw.turn_around)
-                            .buildAsync();
-
-                    myAnimationFuture.andThenConsume(myAnimation -> {
-                        Animate animate = AnimateBuilder.with(qiContext)
-                                .withAnimation(myAnimation)
-                                .build();
-
-                        // Run the action synchronously in this thread
-                        animate.run();
-
-                        pepperLog.appendLog(TAG, "Turning around finished");
-                        setAnimating(false);
-                    });
-                }
-            });
-        });
-
-
+        pepperLog.appendLog(TAG, "Calling goto square");
+        // gotoExecutor.performRoam(qiContext,actuation,mapping,this,pepperLog);
+        gotoExecutor.performGotoSquare(qiContext,actuation,mapping,this,pepperLog);
     }
 
     private void holdAbilities() {
         // Build and store the holder for the abilities.
         holder = HolderBuilder.with(qiContext)
                 .withAutonomousAbilities(
-                        AutonomousAbilitiesType.BASIC_AWARENESS
+                        AutonomousAbilitiesType.BASIC_AWARENESS,
+                        AutonomousAbilitiesType.AUTONOMOUS_BLINKING,
+                        AutonomousAbilitiesType.BACKGROUND_MOVEMENT
                 )
                 .build();
 
