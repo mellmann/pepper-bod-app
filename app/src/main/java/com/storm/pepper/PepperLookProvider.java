@@ -10,6 +10,7 @@ import com.aldebaran.qi.sdk.object.actuation.LookAt;
 import com.aldebaran.qi.sdk.object.actuation.LookAtMovementPolicy;
 import com.aldebaran.qi.sdk.object.actuation.Mapping;
 import com.aldebaran.qi.sdk.object.geometry.Transform;
+import com.aldebaran.qi.sdk.object.geometry.Vector3;
 
 public class PepperLookProvider {
 
@@ -18,7 +19,8 @@ public class PepperLookProvider {
         Mapping mapping = qiContext.getMapping();
         FreeFrame targetFrame = mapping.makeFreeFrame();
 
-        Transform transform = TransformBuilder.create().fromXTranslation(1);
+        Vector3 target = new Vector3(1.0, 0.0, 2.7);
+        Transform transform = TransformBuilder.create().fromTranslation(target);
 
         targetFrame.update(robotFrame, transform, 0L);
 
