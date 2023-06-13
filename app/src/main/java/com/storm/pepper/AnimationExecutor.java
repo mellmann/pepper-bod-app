@@ -8,11 +8,13 @@ import com.aldebaran.qi.sdk.object.actuation.Animate;
 import com.aldebaran.qi.sdk.object.actuation.Animation;
 
 public class AnimationExecutor {
+    private static final String TAG = AnimationExecutor.class.getSimpleName();
     private Future<Animation> animationFuture;
     private QiContext qiContext;
     private Animate animate;
 
-    public void animate(String toAnimate, QiContext qi, POSHBehaviourLibrary pbl) {
+    public void animate(String toAnimate, QiContext qi, POSHBehaviourLibrary pbl,
+                        PepperLog pepperLog) {
         qiContext = qi;
         int resID = 0;
         // Create an animation object.
@@ -49,46 +51,49 @@ public class AnimationExecutor {
         animationFuture = AnimationBuilder.with(qiContext)
                 .withResources(resID)
                 .buildAsync();
+        try {
+            animationFuture.andThenConsume(myAnimation -> {
+                animate = AnimateBuilder.with(qiContext)
+                        .withAnimation(myAnimation)
+                        .build();
+                // Run the action synchronously in this thread
+                animate.async().run();
 
-        animationFuture.andThenConsume(myAnimation -> {
-            animate = AnimateBuilder.with(qiContext)
-                    .withAnimation(myAnimation)
-                    .build();
-            // Run the action synchronously in this thread
-            animate.async().run();
-
-            animate.addOnLabelReachedListener((label, time) -> {
-                // Called when a label is reached.
-                switch(toAnimate) {
-                    case "WaveLeft":
-                        pbl.haveWavedLeft = true;
-                        break;
-                    case "WaveRight":
-                        pbl.haveWavedRight = true;
-                        break;
-                    case "TurnAround":
-                        pbl.turnedAround = true;
-                        break;
-                    case "Hug":
-                        pbl.haveHugged = true;
-                        break;
-                    case "HighFive":
-                        pbl.haveHighFived = true;
-                        break;
-                    case "ShakeHands":
-                        pbl.haveShakedHands = true;
-                        break;
-                    case "CheckWatch":
-                        pbl.haveCheckedWatch = true;
-                        break;
-                    case "WashHands":
-                        pbl.haveWashedHands = true;
-                    case "Laugh":
-                        pbl.hasLaughed = true;
-                    default:
-                        break;
-                }
+                animate.addOnLabelReachedListener((label, time) -> {
+                    // Called when a label is reached.
+                    switch (toAnimate) {
+                        case "WaveLeft":
+                            pbl.haveWavedLeft = true;
+                            break;
+                        case "WaveRight":
+                            pbl.haveWavedRight = true;
+                            break;
+                        case "TurnAround":
+                            pbl.turnedAround = true;
+                            break;
+                        case "Hug":
+                            pbl.haveHugged = true;
+                            break;
+                        case "HighFive":
+                            pbl.haveHighFived = true;
+                            break;
+                        case "ShakeHands":
+                            pbl.haveShakedHands = true;
+                            break;
+                        case "CheckWatch":
+                            pbl.haveCheckedWatch = true;
+                            break;
+                        case "WashHands":
+                            pbl.haveWashedHands = true;
+                        case "Laugh":
+                            pbl.hasLaughed = true;
+                        default:
+                            break;
+                    }
+                });
             });
-        });
+        } catch (Exception e) {
+            pepperLog.appendLog(TAG, "Animation Exception");
+        }
     }
 }

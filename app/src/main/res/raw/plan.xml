@@ -2,10 +2,11 @@
 <Plan>
     <ActionPatterns>
         <ActionPattern name="AP-CheckWatch">
-            <Action name="CheckWatch"></Action>
+            <Action name="Roam"></Action>
             <Action name="ForgetHuman"></Action>
         </ActionPattern>
         <ActionPattern name="AP-ShakeHands">
+            <Action name="ApproachHuman"></Action>
             <Action name="ShakeHands"></Action>
         </ActionPattern>
     </ActionPatterns>
