@@ -1,5 +1,7 @@
 package com.storm.pepper;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +26,8 @@ import com.storm.posh.plan.Plan;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends RobotActivity implements PepperLog {
@@ -47,11 +51,14 @@ public class MainActivity extends RobotActivity implements PepperLog {
     private TextView currentElementName;
     public TextView locationsLabel;
 
+    private TextView selectedPlan;
+
     private PepperServer pepperServer;
     private BaseBehaviourLibrary behaviourLibrary;
 
     public Button startButton;
     public Button stopButton;
+    public Button selectPlan;
     public Button addLocationButton;
     public Button clearLocationsButton;
 
@@ -80,10 +87,7 @@ public class MainActivity extends RobotActivity implements PepperLog {
 
 //        rootLayout = findViewById(R.id.root_layout);
 
-        planner = new Planner(this);
-
-        // configure for chosen plan
-        planResourceId = R.raw.plan;
+        // HOLLY FUCK: this constructor saves itself into a singleton variable which is used by the planner
         behaviourLibrary = new POSHBehaviourLibrary();
         // behaviourLibrary = new BenediktBehaviourLibrary();
         // end configure for chosen plan
@@ -91,14 +95,20 @@ public class MainActivity extends RobotActivity implements PepperLog {
         behaviourLibrary.setPepperLog(this);
         behaviourLibrary.setActivity(this);
 
+        // initialize base POSH stuff
+        // ACHTUNG: planner gets accoess to the behavior library through a singleton. Needs to be fixed.
+        planner = new Planner(this);
+
+
+        // Pepper server
+        pepperServer = new PepperServer(this);
+
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-
-        // Pepper server
-        pepperServer = new PepperServer(this);
 
         // Register the RobotLifecycleCallbacks to this Activity.
         QiSDK.register(this, BaseBehaviourLibrary.getInstance());
@@ -106,12 +116,18 @@ public class MainActivity extends RobotActivity implements PepperLog {
 
         startButton = findViewById(R.id.start_button);
         stopButton = findViewById(R.id.stop_button);
+        selectPlan = findViewById(R.id.select_plan);
         addLocationButton = findViewById(R.id.location_add);
         clearLocationsButton = findViewById(R.id.locations_clear);
         locationsLabel = findViewById(R.id.locations_label);
 
+        selectedPlan = findViewById(R.id.label_selected_plan);
+
         startButton.setOnClickListener(ignore -> {
             Log.d(TAG, "Starting");
+            startButton.setEnabled(false);
+            stopButton.setEnabled(true);
+            selectPlan.setEnabled(false);
             runPlan();
         });
 
@@ -125,12 +141,25 @@ public class MainActivity extends RobotActivity implements PepperLog {
             }).start();
 
             behaviourLibrary.reset();
+
+            startButton.setEnabled(true);
+            stopButton.setEnabled(false);
+            selectPlan.setEnabled(true);
+        });
+
+        // set the initial state for the buttons
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+        selectPlan.setEnabled(true);
+
+
+        selectPlan.setOnClickListener(ignore -> {
+            showPopupList();
         });
 
         addLocationButton.setOnClickListener(ignore -> {
             appendLog("SAVING?");
             behaviourLibrary.saveLocation();
-
         });
 
         clearLocationsButton.setOnClickListener(ignore -> {
@@ -141,7 +170,13 @@ public class MainActivity extends RobotActivity implements PepperLog {
         drivesList = (ListView) findViewById(R.id.drives_list);
         elementsList = (ListView) findViewById(R.id.elements_list);
 
-        readPlan();
+
+
+
+        // configure for chosen plan
+        //planResourceId = R.raw.plan;
+        setSelectedPlan("Plan", R.raw.plan);
+        //readPlan();
     }
 
     public void updateLocationsCount(int count) {
@@ -159,6 +194,54 @@ public class MainActivity extends RobotActivity implements PepperLog {
         if (server) {
             pepperServer.sendMessage(formattedMessage);
         }
+    }
+
+    private void setSelectedPlan(String name, int ressourceId) {
+        selectedPlan.setText(name);
+        planResourceId = ressourceId;
+        readPlan();
+        appendLog(TAG, "Set Selected Plan: \"" + name + "\" with id: " + planResourceId);
+    }
+
+    private void showPopupList() {
+        class PlanListItem {
+            public final String name;
+            public final int resourceId;
+            public PlanListItem(String name, int resourceId) {
+                this.name = name;
+                this.resourceId = resourceId;
+            }
+        };
+
+        final PlanListItem[] items = {
+            new PlanListItem("Plan",                   R.raw.plan),
+            new PlanListItem("Plan Benedikt",          R.raw.plan_benedikt),
+            new PlanListItem("Plan Chain Actions",     R.raw.plan_chain_actions),
+            new PlanListItem("Plan Check Watch",       R.raw.plan_check_watch),
+            new PlanListItem("Plan Die",               R.raw.plan_die),
+            new PlanListItem("Plan Drive Shake Hands", R.raw.plan_drive_shake_hands),
+            new PlanListItem("Plan Matthias",          R.raw.plan_matthias),
+            new PlanListItem("Plan Touch Wave",        R.raw.plan_touch_wave),
+            new PlanListItem("Plan Working",           R.raw.plan_working)
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select a Plan");
+
+        // UGLY HACK: map the names like this because streams are not available here yet
+        final String[] names = new String[items.length];
+        for(int i = 0; i < items.length; i++) {
+            names[i] = items[i].name;
+        }
+        // UGLY^2: setItems wants CharSequence, so cannot use items directly...
+        builder.setItems(names, (DialogInterface dialog, int which) -> {
+            // HACK: this needs to be somewhere else
+            planner.reset();
+            setSelectedPlan(items[which].name, items[which].resourceId);
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
