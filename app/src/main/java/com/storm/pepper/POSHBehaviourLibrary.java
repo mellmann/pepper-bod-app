@@ -399,8 +399,10 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     // tidy up listeners
     public void removeListeners() {
         super.removeListeners();
-        basicEmotionObserver.setListener(null);
-        basicEmotionObserver = null;
+        if(basicEmotionObserver != null) {
+            basicEmotionObserver.setListener(null);
+            basicEmotionObserver = null;
+        }
     }
 
 
@@ -417,7 +419,9 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         if (goTo != null) {
             goTo.removeAllOnStartedListeners();
         }
-        basicEmotionObserver.stopObserving();
+        if(basicEmotionObserver != null) {
+            basicEmotionObserver.stopObserving();
+        }
         super.onRobotFocusLost();
     }
 
