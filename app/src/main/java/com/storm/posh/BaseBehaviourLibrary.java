@@ -906,32 +906,31 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
                         .withFrame(targetFrame)
                         .build();
 
-                setAnimating(true);
-                pepperLog.appendLog(TAG, "Follow started");
+//                pepperLog.appendLog(TAG, "Follow started");
 
 //                goTo.addOnStartedListener(() -> {
 //                });
+//                 setAnimating(false);
+//                goTo.run();
 
-                goTo.run();
+//                pepperLog.appendLog(TAG, "DONE FOLLOWING");
 
-                pepperLog.appendLog(TAG, "DONE FOLLOWING");
-                setAnimating(false);
+                setAnimating(true);
 
-//                // Execute the GoTo action asynchronously.
-//                goToFuture = goTo.async().run();
-//
-//                goToFuture.thenConsume(future -> {
-//                    if (future.isSuccess()) {
-//                        pepperLog.appendLog(TAG,"Follow done");
-//                        this.facingNearHuman = true;
-//                    } else if (future.hasError()) {
-//                        pepperLog.appendLog(TAG, String.format("Follow error: %s", future.getErrorMessage()));
-//                    } else if (future.isCancelled()) {
-//                        pepperLog.appendLog(TAG, "Follow cancelled");
-//                    }
-//
-//                    setAnimating(false);
-//                });
+                // Execute the GoTo action asynchronously.
+                goToFuture = goTo.async().run();
+                goToFuture.thenConsume(future -> {
+                    if (future.isSuccess()) {
+                        pepperLog.appendLog(TAG,"Follow done");
+                        this.facingNearHuman = true;
+                    } else if (future.hasError()) {
+                        pepperLog.appendLog(TAG, String.format("Follow error: %s", future.getErrorMessage()));
+                    } else if (future.isCancelled()) {
+                        pepperLog.appendLog(TAG, "Follow cancelled");
+                    }
+
+                    setAnimating(false);
+                });
             });
     }
 
