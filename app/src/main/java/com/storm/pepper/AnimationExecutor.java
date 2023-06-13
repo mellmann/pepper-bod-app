@@ -42,8 +42,10 @@ public class AnimationExecutor {
                 break;
             case "WashHands":
                 resID = R.raw.washing_arms_b001;
+                break;
             case "Laugh":
                 resID = R.raw.laughing;
+                break;
             default:
                 break;
         }
@@ -51,22 +53,53 @@ public class AnimationExecutor {
         animationFuture = AnimationBuilder.with(qiContext)
                 .withResources(resID)
                 .buildAsync();
-        try {
             animationFuture.andThenConsume(myAnimation -> {
                 animate = AnimateBuilder.with(qiContext)
                         .withAnimation(myAnimation)
                         .build();
                 // Run the action synchronously in this thread
-                animate.async().run();
+                animate.run();
 
-                animate.addOnLabelReachedListener((label, time) -> {
+                switch (toAnimate) {
+                    case "WaveLeft":
+                        pbl.setHaveWavedLeft(true);
+                        break;
+                    case "WaveRight":
+                        pbl.setHaveWavedRight(true);
+                        break;
+                    case "TurnAround":
+                        pbl.turnedAround = true;
+                        break;
+                    case "Hug":
+                        pbl.haveHugged = true;
+                        break;
+                    case "HighFive":
+                        pbl.haveHighFived = true;
+                        break;
+                    case "ShakeHands":
+                        pbl.haveShakedHands = true;
+                        break;
+                    case "CheckWatch":
+                        pbl.haveCheckedWatch = true;
+                        break;
+                    case "WashHands":
+                        pbl.haveWashedHands = true;
+                        break;
+                    case "Laugh":
+                        pbl.hasLaughed = true;
+                        break;
+                    default:
+                        break;
+                }
+
+                /*animate.addOnLabelReachedListener((label, time) -> {
                     // Called when a label is reached.
                     switch (toAnimate) {
                         case "WaveLeft":
-                            pbl.haveWavedLeft = true;
+                            pbl.setHaveWavedLeft(true);
                             break;
                         case "WaveRight":
-                            pbl.haveWavedRight = true;
+                            pbl.setHaveWavedRight(tre);
                             break;
                         case "TurnAround":
                             pbl.turnedAround = true;
@@ -85,15 +118,14 @@ public class AnimationExecutor {
                             break;
                         case "WashHands":
                             pbl.haveWashedHands = true;
+                            break;
                         case "Laugh":
                             pbl.hasLaughed = true;
+                            break;
                         default:
                             break;
                     }
-                });
+                });*/
             });
-        } catch (Exception e) {
-            pepperLog.appendLog(TAG, "Animation Exception");
-        }
     }
 }

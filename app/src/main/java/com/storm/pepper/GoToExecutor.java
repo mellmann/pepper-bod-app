@@ -36,23 +36,20 @@ public class GoToExecutor {
     private int index = 0;
 
     private void initTargetPositions(PepperLog pepperLog) {
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 2");
         targetPos.add(makeRelativeFreeFrame(1.0, 0.0, pepperLog));
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 3");
         targetPos.add(makeRelativeFreeFrame(0.0, 0.0, pepperLog));
     }
 
+    public void resetTargetPositions() {
+        targetPos.clear();
+    }
+
     private FreeFrame makeRelativeFreeFrame(double x, double y, PepperLog pepperLog) {
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 4");
         Frame baseFrame = actuation.robotFrame();
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 5");
         FreeFrame locationFrame = mapping.makeFreeFrame();
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 6");
 
         Transform transform = TransformBuilder.create().from2DTranslation(x, y);
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 7");
         locationFrame.update(baseFrame, transform, 0L);
-        pepperLog.appendLog(TAG, "-------------- performGotoSquare 8");
         return locationFrame;
     }
 
