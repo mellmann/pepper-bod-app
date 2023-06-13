@@ -136,9 +136,13 @@ public class MainActivity extends RobotActivity implements PepperLog {
             stopRunningPlan = true;
 
             behaviourLibrary.stopMoving();
+            /*
+            // NOTE: this was experimental. If we remove listeners here, then we have to add them
+            //       again in run or start
             new Thread(() -> {
                 behaviourLibrary.removeListeners();
             }).start();
+            */
 
             behaviourLibrary.reset();
 
