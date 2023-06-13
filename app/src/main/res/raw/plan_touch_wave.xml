@@ -1,87 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Plan>
     <ActionPatterns>
-        <ActionPattern name="AP-CheckWatch">
-            <Action name="Roam"></Action>
-            <Action name="ForgetHuman"></Action>
-        </ActionPattern>
-        <ActionPattern name="AP-ShakeHands">
-            <Action name="ApproachHuman"></Action>
-            <Action name="ShakeHands"></Action>
-            <Action name="LookAt"></Action>
+        <ActionPattern name="AP-WaveLeft">
+            <Action name="WaveLeft"></Action>
         </ActionPattern>
     </ActionPatterns>
 
 
     <CompetenceElements>
-        <CompetenceElement name="CE-CheckWatch" triggers="AP-CheckWatch">
+        <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
             <Senses>
-                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-        <CompetenceElement name="CE-ShakeHands" triggers="AP-ShakeHands">
-            <Senses>
-                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-                <Sense name="HaveShakedHands" value="0" comparator="bool"></Sense>
-            </Senses>
-        </CompetenceElement>
-        <!--<CompetenceElement name="CE-ForgetHuman" triggers="AP-ForgetHuman">
-            <Senses>
-                <Sense name="HaveShakedHands" value="1" comparator="bool"></Sense>
-            </Senses>
-        </CompetenceElement>-->
     </CompetenceElements>
 
     <Competences>
-        <Competence name="C-CheckWatch">
-            <CompetenceElements>
-                <CompetenceElement name="CE-CheckWatch"></CompetenceElement>
-            </CompetenceElements>
-        </Competence>
-
-        <Competence name="C-ShakeHands">
+        <Competence name="C-WaveLeft">
             <Senses>
-                <Sense name="HaveShakedHands" value="1" comparator="bool"></Sense>
+                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
             </Senses>
             <CompetenceElements>
-                <CompetenceElement name="CE-ShakeHands"></CompetenceElement>
+                <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
             </CompetenceElements>
         </Competence>
-
     </Competences>
 
-<!--  checkTime="5" -->
-    <DriveElements>
-        <DriveElement name="DE-Greet" triggers="C-ShakeHands">
-            <Senses>
-                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-            </Senses>
-        </DriveElement>
 
-        <DriveElement name="DE-Attention" triggers="C-CheckWatch">
+    <DriveElements>
+        <DriveElement name="DE-WaveLeft" triggers="C-WaveLeft" checkTime="0">
             <Senses>
-                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
+                <Sense name="TouchRightHand" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
     </DriveElements>
 
 
     <Drives>
-        <Drive name="D-Human"  priority="1">
+        <Drive name="D-Touch">
             <Senses>
-                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
             </Senses>
             <DriveElements>
-                <DriveElement name="DE-Attention"></DriveElement>
-            </DriveElements>
-        </Drive>
-
-        <Drive name="D-ShakeHands" priority="2">
-            <Senses>
-                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
-            </Senses>
-            <DriveElements>
-                <DriveElement name="DE-Greet"></DriveElement>
+                <DriveElement name="DE-WaveLeft"></DriveElement>
             </DriveElements>
         </Drive>
 

@@ -2,13 +2,11 @@
 <Plan>
     <ActionPatterns>
         <ActionPattern name="AP-CheckWatch">
-            <Action name="Roam"></Action>
+            <Action name="CheckWatch"></Action>
             <Action name="ForgetHuman"></Action>
         </ActionPattern>
         <ActionPattern name="AP-ShakeHands">
-            <Action name="ApproachHuman"></Action>
-            <Action name="ShakeHands"></Action>
-            <Action name="LookAt"></Action>
+            <Action name="HighFive"></Action>
         </ActionPattern>
     </ActionPatterns>
 
@@ -22,14 +20,9 @@
         <CompetenceElement name="CE-ShakeHands" triggers="AP-ShakeHands">
             <Senses>
                 <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-                <Sense name="HaveShakedHands" value="0" comparator="bool"></Sense>
+                <Sense name="HaveHighFived" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-        <!--<CompetenceElement name="CE-ForgetHuman" triggers="AP-ForgetHuman">
-            <Senses>
-                <Sense name="HaveShakedHands" value="1" comparator="bool"></Sense>
-            </Senses>
-        </CompetenceElement>-->
     </CompetenceElements>
 
     <Competences>
@@ -41,7 +34,7 @@
 
         <Competence name="C-ShakeHands">
             <Senses>
-                <Sense name="HaveShakedHands" value="1" comparator="bool"></Sense>
+                <Sense name="HaveHighFived" value="1" comparator="bool"></Sense>
             </Senses>
             <CompetenceElements>
                 <CompetenceElement name="CE-ShakeHands"></CompetenceElement>
@@ -50,7 +43,7 @@
 
     </Competences>
 
-<!--  checkTime="5" -->
+    <!--  checkTime="5" -->
     <DriveElements>
         <DriveElement name="DE-Greet" triggers="C-ShakeHands">
             <Senses>
