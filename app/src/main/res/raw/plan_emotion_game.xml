@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plan>
+    <ActionPatterns>
+        <ActionPattern name="AP-WaveLeft">
+            <Action name="WaveLeft"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-WaveRight">
+            <Action name="WaveRight"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-Laugh">
+            <Action name="Laugh"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-WashHands">
+            <Action name="WashHands"></Action>
+        </ActionPattern>
+    </ActionPatterns>
+
+
+    <CompetenceElements>
+        <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
+        </CompetenceElement>
+        <CompetenceElement name="CE-WaveRight" triggers="AP-WaveRight">
+        </CompetenceElement>
+        <CompetenceElement name="CE-Laugh" triggers="AP-Laugh">
+        </CompetenceElement>
+        <CompetenceElement name="CE-WashHands" triggers="AP-WashHands">
+        </CompetenceElement>
+    </CompetenceElements>
+
+
+    <Competences>
+        <Competence name="C-CONTENT">
+            <CompetenceElements>
+                <CompetenceElement name="CE-CONTENT"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-JOYFUL">
+            <CompetenceElements>
+                <CompetenceElement name="CE-JOYFUL"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-SAD">
+            <CompetenceElements>
+                <CompetenceElement name="CE-SAD"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-ANGRY">
+            <CompetenceElements>
+                <CompetenceElement name="CE-ANGRY"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+    </Competences>
+
+
+    <DriveElements>
+        <DriveElement name="DE-CONTENT" triggers="C-WaveLeft" checkTime="0">
+            <Senses>
+                <Sense name="EmotionState" value="2" comparator="eq"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-JOYFUL" triggers="C-WaveRight" checkTime="0">
+            <Senses>
+                <Sense name="EmotionState" value="3" comparator="eq"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-SAD" triggers="C-Laugh" checkTime="0">
+            <Senses>
+                <Sense name="EmotionState" value="4" comparator="eq"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-ANGRY" triggers="C-WashHands" checkTime="0">
+            <Senses>
+                <Sense name="EmotionState" value="5" comparator="eq"></Sense>
+            </Senses>
+        </DriveElement>
+    </DriveElements>
+
+
+    <Drives>
+        <Drive name="D-CONTENT">
+            <DriveElements>
+                <DriveElement name="DE-CONTENT"></DriveElement>
+            </DriveElements>
+        </Drive>
+        <Drive name="D-JOYFUL">
+            <DriveElements>
+                <DriveElement name="DE-JOYFUL"></DriveElement>
+            </DriveElements>
+        </Drive>
+        <Drive name="D-SAD">
+            <DriveElements>
+                <DriveElement name="DE-SAD"></DriveElement>
+            </DriveElements>
+        </Drive>
+        <Drive name="D-ANGRY">
+            <DriveElements>
+                <DriveElement name="DE-ANGRY"></DriveElement>
+            </DriveElements>
+        </Drive>
+    </Drives>
+</Plan>

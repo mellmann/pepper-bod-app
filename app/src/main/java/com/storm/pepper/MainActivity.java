@@ -226,7 +226,8 @@ public class MainActivity extends RobotActivity implements PepperLog {
             new PlanListItem("Plan Drive Shake Hands", R.raw.plan_drive_shake_hands),
             new PlanListItem("Plan Matthias",          R.raw.plan_matthias),
             new PlanListItem("Plan Touch Wave",        R.raw.plan_touch_wave),
-            new PlanListItem("Plan Working",           R.raw.plan_working)
+            new PlanListItem("Plan Working",           R.raw.plan_working),
+            new PlanListItem("Plan Emotion Game",      R.raw.plan_emotion_game),
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
