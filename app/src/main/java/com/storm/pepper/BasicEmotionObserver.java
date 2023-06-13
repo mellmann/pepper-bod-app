@@ -70,6 +70,22 @@ public class BasicEmotionObserver {
         if (!humansAround.isEmpty()) {
             // Update observed emotion.
             Human observedHuman = humansAround.get(0);
+
+            //observedHuman.getAttention();
+            observedHuman.addOnAttentionChangedListener(attentionState -> {
+                System.out.println("AttentonState changed: " + attentionState);
+            });
+
+            //observedHuman.getFacialExpressions().getSmile();
+            observedHuman.addOnFacialExpressionsChangedListener(expressionState -> {
+                System.out.println("Expression State changed: " + expressionState);
+            });
+
+            // observedHuman.getFacePicture()
+            observedHuman.addOnFacePictureChangedListener(facePicture -> {
+                System.out.println("Picture State changed: " + facePicture.getTime());
+            });
+
             observedEmotion = observedHuman.getEmotion();
 
             // Get and store human excitement and pleasure.
