@@ -53,9 +53,6 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     private Date nextRoamTime;
     private Date lastRoamTime;
 
-    private GoTo goTo;
-    private Future<Void> goToFuture;
-
     private boolean abilitiesHeld = false;
     // The holder for the abilities.
     private Holder holder;
@@ -85,6 +82,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         firstGreet = false;
         abilitiesHeld = false;
         reachedPosition = false;
+
+        gotoExecutor.resetTargetPositions();
     }
 
     public boolean getBooleanSense(Sense sense) {
@@ -217,6 +216,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
                 break;
             case "ForgetHuman":
                 haveShakedHands = false;
+                haveHighFived = false;
+                haveHugged = false;
                 break;
             default:
                 super.executeAction(action);
