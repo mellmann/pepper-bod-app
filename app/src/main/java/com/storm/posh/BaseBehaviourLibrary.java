@@ -108,7 +108,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
     protected Human recommendedHumanToEngage;
 
-    private Future<Void> goToFuture;
+    protected Future<Void> goToFuture;
 
     // Store the touch sensors
     protected TouchSensor touchSensorHead;
@@ -123,7 +123,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     // The holder for the abilities.
     private Holder holder;
     // Store the GoTo action.
-    private GoTo goTo;
+    protected GoTo goTo;
     // Store the Actuation service.
     protected Actuation actuation;
     // Store the Mapping service.
