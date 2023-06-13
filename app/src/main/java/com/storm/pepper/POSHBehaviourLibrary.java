@@ -43,7 +43,6 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     protected boolean haveWashedHands = false;
     protected boolean haveReset = false;
     protected boolean hasLaughed = false;
-    protected boolean animationDone = false;
 
     protected boolean reachedPosition = false;
 
@@ -85,7 +84,6 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         firstGreet = false;
         abilitiesHeld = false;
         reachedPosition = false;
-        animationDone = false;
 
         gotoExecutor.resetTargetPositions();
     }
@@ -136,9 +134,6 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             case "ReachedPosition":
                 senseValue = reachedPosition;
                 break;
-            case "AnimationDone":
-                senseValue = animationDone;
-                break;
             default:
                 senseValue = super.getBooleanSense(sense);
                 pepperLog.appendLog(TAG, "Unknown Sense: " + sense.getNameOfElement());
@@ -154,6 +149,12 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         double senseValue = 0.0;
 
         if (sense.getNameOfElement().equals("EmotionState")) {
+            //    UNKNOWN = 0
+            //    NEUTRAL = 1
+            //    CONTENT = 2
+            //    JOYFUL  = 3
+            //    SAD     = 4
+            //    ANGRY   = 5
             senseValue = currentEmotion.ordinal();
         }
 
@@ -456,6 +457,6 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     public void onBasicEmotionChanged(BasicEmotion basicEmotion) {
         // here goes the variable to store the basicEmotion state
         currentEmotion = basicEmotion;
-        pepperLog.appendLog(TAG, "Basic emotion changed: " + basicEmotion);
+        pepperLog.appendLog(TAG, "Basic emotion changed: " + basicEmotion + " (" + basicEmotion.ordinal() + ")");
     }
 }

@@ -94,7 +94,6 @@ public class AnimationExecutor {
                         break;
                 }
 
-                pbl.animationDone = true;
                 pepperLog.appendLog(TAG, "Animation Done: " + toAnimate);
 
                 /*animate.addOnLabelReachedListener((label, time) -> {
