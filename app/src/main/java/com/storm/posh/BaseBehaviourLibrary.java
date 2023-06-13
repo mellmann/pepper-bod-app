@@ -1009,32 +1009,32 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     // Implementation of touch methods
     public void touchHeadChanged(TouchState touchState) {
         touchHead = touchState.getTouched() ? true : false;
-        Log.i(TAG, "Sensor " + (touchHead ? "touched" : "released") + " at " + touchState.getTime());
+        Log.i(TAG, "Head " + (touchHead ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchHandLeftChanged(TouchState touchState) {
         touchHandLeft = touchState.getTouched() ? true : false;
-        Log.i(TAG, "Sensor " + (touchHandLeft ? "touched" : "released") + " at " + touchState.getTime());
+        Log.i(TAG, "Hand Left " + (touchHandLeft ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchHandRightChanged(TouchState touchState) {
         touchHandRight = touchState.getTouched() ? true : false;
-        Log.i(TAG, "Sensor " + (touchHandRight ? "touched" : "released") + " at " + touchState.getTime());
+        Log.i(TAG, "Hand Right " + (touchHandRight ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchBumperLeftChanged(TouchState touchState) {
         touchBumperLeft = touchState.getTouched() ? true : false;
-        Log.i(TAG, "Sensor " + (touchBumperLeft ? "touched" : "released") + " at " + touchState.getTime());
+        Log.i(TAG, "Bumper Left " + (touchBumperLeft ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchBumperRightChanged(TouchState touchState) {
         touchBumperRight = touchState.getTouched() ? true : false;
-        Log.i(TAG, "Sensor " + (touchBumperRight ? "touched" : "released") + " at " + touchState.getTime());
+        Log.i(TAG, "Bumper Right " + (touchBumperRight ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchBumperBackChanged(TouchState touchState) {
         touchBumperBack = touchState.getTouched() ? true : false;
-        Log.i(TAG, "Sensor " + (touchBumperBack ? "touched" : "released") + " at " + touchState.getTime());
+        Log.i(TAG, "Bumper Back " + (touchBumperBack ? "touched" : "released") + " at " + touchState.getTime());
     }
 
     public void chargingFlapChanged(FlapState flapState) {
         chargingFlapUp = flapState.getOpen() ? true : false;
-        Log.i(TAG, "Sensor " + (chargingFlapUp ? "open" : "closed") + " at " + flapState.getTime());
+        Log.i(TAG, "Flap (Charging Port) " + (chargingFlapUp ? "open" : "closed") + " at " + flapState.getTime());
     }
 
 }
