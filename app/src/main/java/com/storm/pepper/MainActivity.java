@@ -120,6 +120,11 @@ public class MainActivity extends RobotActivity implements PepperLog {
             stopRunningPlan = true;
 
             behaviourLibrary.stopMoving();
+            new Thread(() -> {
+                behaviourLibrary.removeListeners();
+            }).start();
+
+            behaviourLibrary.reset();
         });
 
         addLocationButton.setOnClickListener(ignore -> {
