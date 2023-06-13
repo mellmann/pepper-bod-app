@@ -47,6 +47,7 @@ public class AnimationExecutor {
                 resID = R.raw.laughing;
                 break;
             default:
+                pepperLog.appendLog(TAG, "Unknown Animation: " + toAnimate);
                 break;
         }
 
@@ -89,8 +90,12 @@ public class AnimationExecutor {
                         pbl.hasLaughed = true;
                         break;
                     default:
+                        pepperLog.appendLog(TAG, "Unknown Animation Done: " + toAnimate);
                         break;
                 }
+
+                pbl.animationDone = true;
+                pepperLog.appendLog(TAG, "Animation Done: " + toAnimate);
 
                 /*animate.addOnLabelReachedListener((label, time) -> {
                     // Called when a label is reached.

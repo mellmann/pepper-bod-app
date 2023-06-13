@@ -43,6 +43,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     protected boolean haveWashedHands = false;
     protected boolean haveReset = false;
     protected boolean hasLaughed = false;
+    protected boolean animationDone = false;
+
     protected boolean reachedPosition = false;
 
     private boolean firstGreet = false;
@@ -66,6 +68,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         basicEmotionObserver.setListener(this);
     }
 
+    @Override
     public void reset() {
         super.reset();
 
@@ -82,6 +85,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         firstGreet = false;
         abilitiesHeld = false;
         reachedPosition = false;
+        animationDone = false;
 
         gotoExecutor.resetTargetPositions();
     }
@@ -114,10 +118,10 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             case "HaveSearchedGround":
                 senseValue = haveSearchedGround;
                 break;
-            case "haveWashedHands":
+            case "HaveWashedHands":
                 senseValue = haveWashedHands;
                 break;
-            case "hasLaughed":
+            case "HasLaughed":
                 senseValue = hasLaughed;
                 break;
             case "ReadyToGreet":
@@ -132,8 +136,12 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             case "ReachedPosition":
                 senseValue = reachedPosition;
                 break;
+            case "AnimationDone":
+                senseValue = animationDone;
+                break;
             default:
                 senseValue = super.getBooleanSense(sense);
+                pepperLog.appendLog(TAG, "Unknown Sense: " + sense.getNameOfElement());
                 break;
         }
 
@@ -221,6 +229,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
                 break;
             default:
                 super.executeAction(action);
+                pepperLog.appendLog(TAG, "Unknown Action: " + action.getNameOfElement());
                 break;
         }
     }
@@ -252,7 +261,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         // call animExecutor
         animExecutor.animate(toAnimate, qiContext, this, pepperLog);
         setAnimating(false);
-        pepperLog.appendLog(TAG, "Anination " + toAnimate + " finished");
+        pepperLog.appendLog(TAG, "Animation " + toAnimate + " finished");
     }
 
     public void greet() {
