@@ -15,6 +15,8 @@ import com.aldebaran.qi.sdk.object.actuation.GoTo;
 import com.aldebaran.qi.sdk.object.geometry.Transform;
 import com.aldebaran.qi.sdk.object.holder.AutonomousAbilitiesType;
 import com.aldebaran.qi.sdk.object.holder.Holder;
+import com.aldebaran.qi.sdk.object.human.AttentionState;
+import com.aldebaran.qi.sdk.object.human.FacialExpressions;
 import com.aldebaran.qi.sdk.util.FutureUtils;
 import com.storm.posh.BaseBehaviourLibrary;
 import com.storm.posh.plan.planelements.Sense;
@@ -60,6 +62,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
 
     private BasicEmotionObserver basicEmotionObserver;
     protected BasicEmotion currentEmotion;
+    protected AttentionState attentionState;
+    protected  FacialExpressions facialExpressions;
 
     public POSHBehaviourLibrary() {
         setInstance();
@@ -156,6 +160,28 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             //    SAD     = 4
             //    ANGRY   = 5
             senseValue = currentEmotion.ordinal();
+        }
+
+        if (sense.getNameOfElement().equals("AttentionState")) {
+            // UNKNOWN = 0
+            // LOOKING_AT_ROBOT = 0
+            // LOOKING_UP = 0
+            // LOOKING_DOWN = 0
+            // LOOKING_LEFT = 0
+            // LOOKING_RIGHT = 0
+            // LOOKING_UP_LEFT = 0
+            // LOOKING_UP_RIGHT = 0
+            // LOOKING_DOWN_LEFT = 0
+            // LOOKING_DOWN_RIGHT = 0
+            senseValue = attentionState.ordinal();
+        }
+
+        if (sense.getNameOfElement().equals("FacialExpression")) {
+            // UNKNOWN = 0
+            // NOT_SMILING = 1
+            // SMILING = 2
+            // BROADLY_SMILING = 3
+            senseValue = facialExpressions.getSmile().ordinal();
         }
 
         return senseValue;
@@ -458,5 +484,17 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         // here goes the variable to store the basicEmotion state
         currentEmotion = basicEmotion;
         pepperLog.appendLog(TAG, "Basic emotion changed: " + basicEmotion + " (" + basicEmotion.ordinal() + ")");
+    }
+
+    @Override
+    public void onBasicEmotionChanged(AttentionState attentionState) {
+        this.attentionState = attentionState;
+        pepperLog.appendLog(TAG,"Attention State has changed: " + attentionState);
+    }
+
+    @Override
+    public void onBasicEmotionChanged(FacialExpressions facialExpressions) {
+        this.facialExpressions = facialExpressions;
+        pepperLog.appendLog(TAG,"Facial Expression has changed: " + facialExpressions);
     }
 }
