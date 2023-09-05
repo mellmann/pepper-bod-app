@@ -204,9 +204,19 @@ public class XPOSHPlanReader extends PlanReader {
         for (int i = 0; i < drivesNodes.getLength(); i++) {
             if (drivesNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
                 Element driveElement = (Element) drivesNodes.item(i);
-                List<Sense> conditions = conditionsCreator(driveElement.getElementsByTagName("Senses"));
+
+                // senses in the drive node are treated as goals
+                List<Sense> goals = conditionsCreator(driveElement.getElementsByTagName("Senses"));
                 List<DriveElement> driveElements = deCCreator(driveElement.getElementsByTagName("DriveElements"));
-                DriveCollection driveCollection = new DriveCollection(driveElement.getAttribute("name"), conditions, driveElements);
+                DriveCollection driveCollection = new DriveCollection(driveElement.getAttribute("name"), goals, driveElements);
+
+                try {
+                    driveCollection.setPriority(Integer.parseInt(driveElement.getAttribute("priority")));
+                    Log.d(TAG, "Drive: " + driveCollection.getNameOfElement() + ", priority:" + driveCollection.getPriority());
+                } catch(Exception ex) {
+                    Log.w(TAG, "Could not parse priority for drive " + driveCollection.getNameOfElement(), ex);
+                }
+
                 Plan.getInstance().addDriveCollection(driveCollection);
             }
         }
