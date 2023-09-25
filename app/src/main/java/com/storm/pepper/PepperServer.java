@@ -5,6 +5,7 @@ import com.storm.posh.Planner;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -21,6 +22,8 @@ public class PepperServer {
     private ServerSocket serverSocket;
     private Socket tempClientSocket;
     Thread serverThread = null;
+
+    public String lastUploadedPlan = null;
 
     public static final int SERVER_PORT = 3003;
 
@@ -125,6 +128,14 @@ public class PepperServer {
             pepperLog.appendLog(TAG, "Connected to Client!!", false);
         }
 
+        private int readInt() throws IOException {
+            int ch1 = input.read();
+            int ch2 = input.read();
+            int ch3 = input.read();
+            int ch4 = input.read();
+            return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+        }
+
         public void run() {
 
             while (!Thread.currentThread().isInterrupted()) {
@@ -137,6 +148,22 @@ public class PepperServer {
                         break;
                     }
                     pepperLog.appendLog(TAG,"Client : " + read, false);
+
+                    if (read.equals("upload_plan"))
+                    {
+                        int length = readInt();
+                        //lastUploadedPlan = sb.toString();
+                        pepperLog.appendLog(TAG,"Plan Length: " + length, false);
+
+                        if(length >= 0) {
+                            char[] buffer = new char[length];
+                            if(input.read(buffer,0,length) == length) {
+                                lastUploadedPlan = new String(buffer);
+                                pepperLog.appendLog(TAG,"Plan upload successful: ", false);
+                            }
+                        }
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
