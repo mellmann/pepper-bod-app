@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plan>
+    <ActionPatterns>
+        <ActionPattern name="AP-Roam">
+            <Action name="Roam"></Action>
+            <Action name="ClearWaving"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-ApproachHuman">
+            <Action name="RoamStop"></Action>
+            <Action name="ApproachHuman"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-ShakeHands">
+            <Action name="RoamStop"></Action>
+            <Action name="ShakeHands"></Action>
+            <Action name="LookAt"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-WaveLeft">
+            <Action name="WaveLeft"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-CheckWatch">
+            <Action name="CheckWatch"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-BeShy">
+            <Action name="ForgetHuman"></Action>
+            <Action name="Laugh"></Action>
+            <Action name="Roam"></Action>
+        </ActionPattern>
+    </ActionPatterns>
+
+    <CompetenceElements>
+        <CompetenceElement name="CE-Roam" triggers="AP-Roam">
+            <Senses>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-ShakeHands" triggers="AP-ShakeHands">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="HaveShakedHands" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-ApproachHuman" triggers="AP-ApproachHuman">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-CheckWatch" triggers="AP-CheckWatch">
+            <Senses>
+                <Sense name="Animating" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+
+        <CompetenceElement name="CE-Laugh" triggers="AP-BeShy">
+            <Senses>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+
+        <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
+            <Senses>
+                <!--<Sense name="IdleTime" value="3" comparator="bool"></Sense>-->
+                <!--<Sense name="Animating" value="0" comparator="bool"></Sense>-->
+                <Sense name="AttentionTime" value="20" comparator="gt"></Sense>
+            </Senses>
+        </CompetenceElement>
+    </CompetenceElements>
+
+
+    <Competences>
+        <Competence name="C-Roam">
+            <Senses>
+                <!--<Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-Roam"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+        <Competence name="C-LeavePlace">
+            <Senses><!--goals-->
+                <!--<Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+                <Sense name="ArrivedAtLocation" value="0" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-Roam"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+        <Competence name="C-FollowHuman">
+            <Senses><!--goals-->
+                <!--<Sense name="HaveShakedHands" value="1" comparator="bool"></Sense>-->
+                <!--<Sense name="ArrivedAtLocation" value="0" comparator="bool"></Sense>-->
+                <Sense name="TouchHead" value="1" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
+                <CompetenceElement name="CE-ApproachHuman"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+        <Competence name="C-CheckWatch">
+            <Senses><!--goals-->
+                <Sense name="HaveCheckedWatch" value="1" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-CheckWatch"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+        <Competence name="C-GetSpace">
+            <Senses><!--goals-->
+                <Sense name="AttentionTime" value="10" comparator="lt"></Sense>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="HaveCheckedWatch" value="1" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-Laugh"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+
+    </Competences>
+
+    <!--  checkTime="5" -->
+    <DriveElements>
+        <DriveElement name="DE-Greet" triggers="C-FollowHuman">
+            <Senses><!--conditions-->
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+                <Sense name="TouchHead" value="0" comparator="bool"></Sense>
+                <Sense name="AttentionTime" value="45" comparator="lt"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-Search" triggers="C-Roam">
+            <Senses><!--conditions-->
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="0" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-LeavePlace" triggers="C-LeavePlace">
+            <Senses><!--conditions-->
+                <Sense name="HaveCheckedWatch" value="1" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-HeadTouched" triggers="C-GetSpace" checkTime="5">
+            <Senses><!--conditions-->
+                <Sense name="TouchHead" value="1" comparator="bool"></Sense>
+                <!--<Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>-->
+                <!--<Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-WaitForHuman" triggers="C-CheckWatch">
+            <Senses><!--conditions-->
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-Relax" triggers="C-GetSpace">
+            <Senses><!--conditions-->
+                <Sense name="AttentionTime" value="40" comparator="gt"></Sense>
+            </Senses>
+        </DriveElement>
+
+    </DriveElements>
+
+
+    <Drives>
+        <Drive name="D-LookAround"  priority="1">
+            <DriveElements>
+                <DriveElement name="DE-Search"></DriveElement>
+                <DriveElement name="DE-LeavePlace"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-WaitForHuman"  priority="2">
+            <DriveElements>
+                <DriveElement name="DE-WaitForHuman"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-NeedSpace" priority="3">
+            <DriveElements>
+                <DriveElement name="DE-HeadTouched"></DriveElement>
+                <DriveElement name="DE-Relax"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-Curious" priority="4">
+            <DriveElements>
+                <DriveElement name="DE-Greet"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+
+    </Drives>
+</Plan>
