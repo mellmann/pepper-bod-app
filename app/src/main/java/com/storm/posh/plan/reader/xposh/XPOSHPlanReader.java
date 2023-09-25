@@ -36,7 +36,9 @@ public class XPOSHPlanReader extends PlanReader {
         readXPOSHFile(fileName);
     }
 
-    public void readFile(InputStream file) {
+    // this reference is used internally to assemble the Plan that is currently parsed
+    public void readFile(InputStream file)
+    {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -58,6 +60,7 @@ public class XPOSHPlanReader extends PlanReader {
 
     }
 
+    // TODO: readXPOSHFile is basically identical to readFile above. Unify to reduce code duplication.
     private void readXPOSHFile(String fileName) {
         try {
             File fXmlFile = new File(fileName);
@@ -210,6 +213,7 @@ public class XPOSHPlanReader extends PlanReader {
                 List<DriveElement> driveElements = deCCreator(driveElement.getElementsByTagName("DriveElements"));
                 DriveCollection driveCollection = new DriveCollection(driveElement.getAttribute("name"), goals, driveElements);
 
+                // parse the drive priority
                 try {
                     driveCollection.setPriority(Integer.parseInt(driveElement.getAttribute("priority")));
                     Log.d(TAG, "Drive: " + driveCollection.getNameOfElement() + ", priority:" + driveCollection.getPriority());
