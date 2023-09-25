@@ -31,6 +31,7 @@ public class NoElementsListAdapter extends ArrayAdapter {
 
         //this code sets the values of the objects to values from the arrays
         elementName.setText(elements.get(position));
+        elementNotes.setText("");
 
         return rowView;
 
