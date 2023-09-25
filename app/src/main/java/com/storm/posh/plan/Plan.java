@@ -39,9 +39,9 @@ public class Plan {
 
     private volatile PlanElement currentElement;
 
-    private Plan() {
-    }
+    private Plan() {}
 
+    // TODO: this is very bad design. This makes it very hard to control the data flow
     public static Plan getInstance() {
         if (instance == null) {
             instance = new Plan();
@@ -55,10 +55,13 @@ public class Plan {
     }
 
     public void cleanAllLists() {
+        reset();
+
+        senses.clear();
         actionEvents.clear();
         actionPatterns.clear();
-        competenceElements.clear();
         competences.clear();
+        competenceElements.clear();
         driveElements.clear();
         driveCollections.clear();
     }
