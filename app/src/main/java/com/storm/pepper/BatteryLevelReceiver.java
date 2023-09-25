@@ -8,9 +8,14 @@ import android.os.BatteryManager;
 import com.storm.posh.BaseBehaviourLibrary;
 
 public class BatteryLevelReceiver extends BroadcastReceiver {
+
+    private BaseBehaviourLibrary behaviourLibrary;
+
+    public BatteryLevelReceiver(BaseBehaviourLibrary behaviourLibrary) {
+        this.behaviourLibrary = behaviourLibrary;
+    }
     @Override
     public void onReceive(Context context, Intent intent) {
-        BaseBehaviourLibrary behaviourLibrary = BaseBehaviourLibrary.getInstance();
 
         if (intent.getAction().equals("android.intent.action.BATTERY_LOW")) {
 //            some code...
