@@ -1,20 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Plan>
     <ActionPatterns>
-        <ActionPattern name="AP-CheckWatch">
+        <ActionPattern name="AP-Roam">
             <Action name="Roam"></Action>
-            <Action name="ForgetHuman"></Action>
+            <Action name="ClearWaving"></Action>
         </ActionPattern>
         <ActionPattern name="AP-ShakeHands">
+            <Action name="RoamStop"></Action>
             <Action name="ApproachHuman"></Action>
             <Action name="ShakeHands"></Action>
             <Action name="LookAt"></Action>
         </ActionPattern>
+        <ActionPattern name="AP-WaveLeft">
+            <Action name="WaveLeft"></Action>
+        </ActionPattern>
+        <ActionPattern name="AP-WaitForHuman">
+            <Action name="CheckWatch"></Action>
+        </ActionPattern>
     </ActionPatterns>
 
-
     <CompetenceElements>
-        <CompetenceElement name="CE-CheckWatch" triggers="AP-CheckWatch">
+        <CompetenceElement name="CE-Roam" triggers="AP-Roam">
             <Senses>
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
             </Senses>
@@ -25,17 +31,37 @@
                 <Sense name="HaveShakedHands" value="0" comparator="bool"></Sense>
             </Senses>
         </CompetenceElement>
-        <!--<CompetenceElement name="CE-ForgetHuman" triggers="AP-ForgetHuman">
+        <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
             <Senses>
-                <Sense name="HaveShakedHands" value="1" comparator="bool"></Sense>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
             </Senses>
-        </CompetenceElement>-->
+        </CompetenceElement>
+        <CompetenceElement name="CE-CheckWatch" triggers="AP-CheckWatch">
+            <Senses>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
     </CompetenceElements>
 
     <Competences>
-        <Competence name="C-CheckWatch">
+        <Competence name="C-Roam">
+            <Senses>
+                <!--<Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
+            </Senses>
             <CompetenceElements>
-                <CompetenceElement name="CE-CheckWatch"></CompetenceElement>
+                <CompetenceElement name="CE-Roam"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+
+        <Competence name="C-LeavePlace">
+            <Senses>
+                <!--<Sense name="HumanPresent" value="1" comparator="bool"></Sense>-->
+                <Sense name="ArrivedAtLocation" value="0" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-Roam"></CompetenceElement>
             </CompetenceElements>
         </Competence>
 
@@ -48,6 +74,14 @@
             </CompetenceElements>
         </Competence>
 
+        <Competence name="C-WaveLeft">
+            <Senses>
+                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
     </Competences>
 
 <!--  checkTime="5" -->
@@ -58,30 +92,56 @@
             </Senses>
         </DriveElement>
 
-        <DriveElement name="DE-Attention" triggers="C-CheckWatch">
+        <DriveElement name="DE-Search" triggers="C-Roam">
             <Senses>
                 <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="0" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-LeavePlace" triggers="C-LeavePlace">
+            <Senses>
+                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-LeavePlaceAfterTouched" triggers="C-LeavePlace">
+            <Senses>
+                <Sense name="TouchRightHand" value="1" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
+                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+
+        <DriveElement name="DE-Announce" triggers="C-WaveLeft">
+            <Senses>
+                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
+                <Sense name="ArrivedAtLocation" value="1" comparator="bool"></Sense>
             </Senses>
         </DriveElement>
     </DriveElements>
 
 
     <Drives>
-        <Drive name="D-Human"  priority="1">
-            <Senses>
-                <Sense name="HumanPresent" value="1" comparator="bool"></Sense>
-            </Senses>
+        <Drive name="D-SearchHuman"  priority="3">
             <DriveElements>
-                <DriveElement name="DE-Attention"></DriveElement>
+                <DriveElement name="DE-Search"></DriveElement>
+                <DriveElement name="DE-LeavePlace"></DriveElement>
             </DriveElements>
         </Drive>
 
-        <Drive name="D-ShakeHands" priority="2">
-            <Senses>
-                <Sense name="HumanPresent" value="0" comparator="bool"></Sense>
-            </Senses>
+        <Drive name="D-AnouncePlace"  priority="2">
+            <DriveElements>
+                <DriveElement name="DE-Announce"></DriveElement>
+            </DriveElements>
+        </Drive>
+
+        <Drive name="D-ShakeHands" priority="1">
             <DriveElements>
                 <DriveElement name="DE-Greet"></DriveElement>
+                <DriveElement name="DE-LeavePlaceAfterTouched"></DriveElement>
             </DriveElements>
         </Drive>
 

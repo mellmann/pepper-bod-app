@@ -4,13 +4,19 @@
         <ActionPattern name="AP-WaveLeft">
             <Action name="WaveLeft"></Action>
         </ActionPattern>
+        <ActionPattern name="AP-DoNothing">
+        </ActionPattern>
     </ActionPatterns>
-
 
     <CompetenceElements>
         <CompetenceElement name="CE-WaveLeft" triggers="AP-WaveLeft">
             <Senses>
-                <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
+                <!--<Sense name="IdleTime" value="3" comparator="bool"></Sense>-->
+                <Sense name="Animating" value="0" comparator="bool"></Sense>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-Relax" triggers="AP-DoNothing">
+            <Senses>
             </Senses>
         </CompetenceElement>
     </CompetenceElements>
@@ -18,10 +24,18 @@
     <Competences>
         <Competence name="C-WaveLeft">
             <Senses>
-                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
+                <Sense name="Animating" value="1" comparator="bool"></Sense>
             </Senses>
             <CompetenceElements>
                 <CompetenceElement name="CE-WaveLeft"></CompetenceElement>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-Relax">
+            <Senses>
+                <Sense name="TouchRightHand" value="0" comparator="bool"></Sense>
+            </Senses>
+            <CompetenceElements>
+                <CompetenceElement name="CE-Relax"></CompetenceElement>
             </CompetenceElements>
         </Competence>
     </Competences>
@@ -30,20 +44,24 @@
     <DriveElements>
         <DriveElement name="DE-WaveLeft" triggers="C-WaveLeft" checkTime="0">
             <Senses>
-                <Sense name="HaveWavedLeft" value="0" comparator="bool"></Sense>
                 <Sense name="TouchRightHand" value="1" comparator="bool"></Sense>
+            </Senses>
+        </DriveElement>
+        <DriveElement name="DE-Relax" triggers="C-Relax" checkTime="0">
+            <Senses>
             </Senses>
         </DriveElement>
     </DriveElements>
 
-
     <Drives>
-        <Drive name="D-Touch">
-            <Senses>
-                <Sense name="HaveWavedLeft" value="1" comparator="bool"></Sense>
-            </Senses>
+        <Drive name="D-Touch" priority="1">
             <DriveElements>
                 <DriveElement name="DE-WaveLeft"></DriveElement>
+            </DriveElements>
+        </Drive>
+        <Drive name="D-Relax" priority="2">
+            <DriveElements>
+                <DriveElement name="DE-Relax"></DriveElement>
             </DriveElements>
         </Drive>
 
