@@ -9,47 +9,51 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.storm.posh.plan.planelements.drives.DriveCollection;
-
 import java.util.List;
+import java.util.TreeMap;
 
-public class DrivesListAdapter extends ArrayAdapter {
+public class SensesListAdapter extends ArrayAdapter {
     private final Activity context;
-    private final List<DriveCollection> drives;
-    private final DriveCollection currentDrive;
 
-    public DrivesListAdapter(Activity context, List<DriveCollection> drives, DriveCollection currentDrive){
+    private final TreeMap<String, String> sensValues;
+    List<String> senses;
 
-        super(context, R.layout.drives_row, drives);
+    public SensesListAdapter(Activity context, List<String> senses, TreeMap<String, String> sensValues) {
+
+        super(context, R.layout.senses_row, senses);
 
         this.context = context;
-        this.drives = drives;
-        this.currentDrive = currentDrive;
+        this.sensValues = sensValues;
+        this.senses = senses;
     }
 
-    public boolean isStale(DriveCollection newDrive) {
-        return (currentDrive != newDrive);
+    public void isStale() {
+        if(senses.size() != this.getCount()) {
+            this.notifyDataSetChanged();
+        }
     }
 
     public View getView(int position, View view, ViewGroup parent) {
-        DriveCollection drive = drives.get(position);
+        String sense = senses.get(position);
 
         LayoutInflater inflater = context.getLayoutInflater();
-        View rowView = inflater.inflate(R.layout.drives_row, null,true);
+        View rowView = inflater.inflate(R.layout.senses_row, null,true);
 
         // this code gets references to objects in the row xml file
-        TextView driveName = rowView.findViewById(R.id.driveName);
-        TextView driveNotes = rowView.findViewById(R.id.driveNotes);
-        driveNotes.setText("");
+        TextView senseName = rowView.findViewById(R.id.senseName);
+        TextView senseValue = rowView.findViewById(R.id.senseValue);
 
         //this code sets the values of the objects to values from the arrays
-        driveName.setText(drive.getNameOfElement());
-        if (currentDrive != null && drive.getNameOfElement() == currentDrive.getNameOfElement()) {
-            driveName.setTypeface(null, Typeface.BOLD);
+        senseName.setText(sense);
+        String value = sensValues.get(sense);
+        senseValue.setText(value);
+
+        if (value != null && ((String)value).toLowerCase().equals("true")) {
+            senseName.setTypeface(null, Typeface.BOLD);
             rowView.setBackgroundColor(Color.CYAN);
         } else {
-            driveName.setTypeface(null, Typeface.NORMAL);
-            rowView.setBackgroundColor(Color.WHITE);
+            senseName.setTypeface(null, Typeface.NORMAL);
+            rowView.setBackgroundColor(Color.alpha(0));
         }
 
         return rowView;

@@ -1,6 +1,7 @@
 package com.storm.pepper;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,16 +38,18 @@ public class DrivesListAdapter extends ArrayAdapter {
         View rowView = inflater.inflate(R.layout.drives_row, null,true);
 
         // this code gets references to objects in the row xml file
-        TextView driveName = rowView.findViewById(R.id.driveName);
-        TextView driveNotes = rowView.findViewById(R.id.driveNotes);
+        TextView driveName = rowView.findViewById(R.id.senseName);
+        TextView driveNotes = rowView.findViewById(R.id.senseValue);
         driveNotes.setText("");
 
         //this code sets the values of the objects to values from the arrays
         driveName.setText(drive.getNameOfElement());
         if (currentDrive != null && drive.getNameOfElement() == currentDrive.getNameOfElement()) {
             driveName.setTypeface(null, Typeface.BOLD);
+            rowView.setBackgroundColor(Color.CYAN);
         } else {
             driveName.setTypeface(null, Typeface.NORMAL);
+            rowView.setBackgroundColor(Color.alpha(0));
         }
 
         return rowView;

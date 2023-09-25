@@ -5,101 +5,162 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:textAlignment="center"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/stop_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/button_stop"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/start_button" />
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="-131dp"
+        tools:layout_editor_absoluteY="-74dp">
 
-    <Button
-        android:id="@+id/start_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/button_start"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <ListView
+            android:id="@+id/senses_list"
+            android:layout_width="300dp"
+            android:layout_height="432dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="#33FF9800"
+            app:layout_constraintBottom_toTopOf="@+id/toolBarLayout"
+            app:layout_constraintStart_toStartOf="parent">
 
-    <Button
-        android:id="@+id/select_plan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/button_select_plan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/stop_button" />
+        </ListView>
 
-    <ListView
-        android:id="@+id/drives_list"
-        android:layout_width="432dp"
-        android:layout_height="432dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="96dp"
-        android:layout_marginBottom="96dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <ListView
+            android:id="@+id/drives_list"
+            android:layout_width="300dp"
+            android:layout_height="432dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="#338BC34A"
+            app:layout_constraintBottom_toTopOf="@+id/toolBarLayout"
+            app:layout_constraintStart_toEndOf="@+id/senses_list">
 
-    <ListView
-        android:id="@+id/elements_list"
-        android:layout_width="432dp"
-        android:layout_height="432dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="96dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="96dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/drives_list"
-        app:layout_constraintTop_toTopOf="parent" />
+        </ListView>
 
-    <Button
-        android:id="@+id/location_add"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/button_add_location"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/locations_clear" />
+        <ListView
+            android:id="@+id/elements_list"
+            android:layout_width="300dp"
+            android:layout_height="432dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="#3303A9F4"
+            app:layout_constraintBottom_toTopOf="@+id/toolBarLayout"
+            app:layout_constraintStart_toEndOf="@+id/drives_list" />
 
-    <Button
-        android:id="@+id/locations_clear"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/button_clear_locations"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <LinearLayout
+            android:id="@+id/toolBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-    <TextView
-        android:id="@+id/locations_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="32dp"
-        android:text="@string/label_locations"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/location_add" />
+            <Button
+                android:id="@+id/stop_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/button_stop" />
 
-    <TextView
-        android:id="@+id/label_selected_plan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="24dp"
-        android:text="@string/label_selected_plan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/select_plan" />
+            <Button
+                android:id="@+id/start_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/button_start" />
+
+            <Button
+                android:id="@+id/select_plan"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/button_select_plan" />
+
+            <TextView
+                android:id="@+id/label_selected_plan"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/label_selected_plan"
+                android:textAlignment="center" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/location_add"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/button_add_location" />
+
+            <Button
+                android:id="@+id/locations_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/button_clear_locations" />
+
+            <TextView
+                android:id="@+id/locations_label"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/label_locations" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/editTextText2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:ems="10"
+            android:gravity="center"
+            android:inputType="text"
+            android:text="Senses"
+            android:textColor="#000000"
+            android:textSize="34sp"
+            app:layout_constraintBottom_toTopOf="@+id/senses_list"
+            app:layout_constraintEnd_toEndOf="@+id/senses_list"
+            app:layout_constraintStart_toStartOf="@+id/senses_list"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/editTextText3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:ems="10"
+            android:gravity="center"
+            android:inputType="text"
+            android:onClick="toggleToolBarView"
+            android:text="Drives"
+            android:textColor="#000000"
+            android:textSize="34sp"
+            app:layout_constraintBottom_toTopOf="@+id/drives_list"
+            app:layout_constraintEnd_toEndOf="@+id/drives_list"
+            app:layout_constraintStart_toStartOf="@+id/drives_list"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/editTextText4"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:ems="10"
+            android:gravity="center"
+            android:inputType="text"
+            android:text="Actions"
+            android:textColor="#000000"
+            android:textSize="34sp"
+            app:layout_constraintBottom_toTopOf="@+id/elements_list"
+            app:layout_constraintEnd_toEndOf="@+id/elements_list"
+            app:layout_constraintStart_toStartOf="@+id/elements_list"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>
