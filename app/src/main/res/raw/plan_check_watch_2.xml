@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Plan>
+    <ActionPatterns>
+        <ActionPattern name="AP-CheckWatch">
+            <Action name="CheckWatch"/>
+            <Action name="ForgetHuman"/>
+        </ActionPattern>
+        <ActionPattern name="AP-ShakeHands">
+            <Action name="HighFive"/>
+        </ActionPattern>
+    </ActionPatterns>
+    <CompetenceElements>
+        <CompetenceElement name="CE-CheckWatch" triggers="AP-CheckWatch">
+            <Senses>
+                <Sense comperator="bool" name="HumanPresent" value="0"/>
+            </Senses>
+        </CompetenceElement>
+        <CompetenceElement name="CE-ShakeHands" triggers="AP-ShakeHands">
+            <Senses>
+                <Sense comperator="bool" name="HumanPresent" value="0"/>
+                <Sense comperator="bool" name="HaveHighFived" value="0"/>
+            </Senses>
+        </CompetenceElement>
+    </CompetenceElements>
+    <Competences>
+        <Competence name="C-CheckWatch">
+            <Goals/>
+            <CompetenceElements>
+                <CompetenceElement name="CE-CheckWatch"/>
+            </CompetenceElements>
+        </Competence>
+        <Competence name="C-ShakeHands">
+            <Goals>
+                <Sense comperator="bool" name="HaveHighFived" value="0"/>
+            </Goals>
+            <CompetenceElements>
+                <CompetenceElement name="CE-ShakeHands"/>
+            </CompetenceElements>
+        </Competence>
+    </Competences>
+    <DriveElements>
+        <DriveElement checkTime="0.0" name="DE-Greet" triggers="C-ShakeHands">
+            <Senses>
+                <Sense comperator="bool" name="HumanPresent" value="0"/>
+            </Senses>
+        </DriveElement>
+        <DriveElement checkTime="0.0" name="DE-Attention" triggers="C-CheckWatch">
+            <Senses>
+                <Sense comperator="bool" name="HumanPresent" value="0"/>
+            </Senses>
+        </DriveElement>
+        <DriveElement checkTime="0.0" name="DE-Attention" triggers="">
+            <Senses/>
+        </DriveElement>
+        <DriveElement checkTime="0.0" name="DE-Greet" triggers="">
+            <Senses/>
+        </DriveElement>
+    </DriveElements>
+    <Drives>
+        <Drive name="D-Human">
+            <Goals>
+                <Sense comperator="bool" name="HumanPresent" value="0"/>
+            </Goals>
+            <DriveElements>
+                <DriveElement name="DE-Attention"/>
+            </DriveElements>
+        </Drive>
+        <Drive name="D-ShakeHands">
+            <Goals>
+                <Sense comperator="bool" name="HumanPresent" value="0"/>
+            </Goals>
+            <DriveElements>
+                <DriveElement name="DE-Greet"/>
+            </DriveElements>
+        </Drive>
+    </Drives>
+</Plan>
