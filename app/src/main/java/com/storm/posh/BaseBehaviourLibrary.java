@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCallbacks {
     private static final String TAG = BaseBehaviourLibrary.class.getSimpleName();
 
-    private static BaseBehaviourLibrary instance = null;
+    //private static BaseBehaviourLibrary instance = null;
 
     protected PepperLog pepperLog;
 
@@ -85,6 +85,34 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     protected boolean mappingComplete = false;
 
     // adding boolean senses for touch sensor
+    class TouchSense {
+        private String name = "unknown";
+        private long lastTimeWhenTouched = 0;
+
+        public TouchSense(String name) {
+            this.name = name;
+        }
+
+        // callback to be attached to the sensor
+        public void onChanged(TouchState state) {
+            if(state.getTouched()) {
+                // NOTE: state.getTime() is in nanoseconds and probably comes from the head computer
+                lastTimeWhenTouched = System.currentTimeMillis(); //state.getTime();
+            }
+            Log.i(TAG, name + " " + (state.getTouched() ? "touched" : "released") + " at " + state.getTime());
+        }
+
+        // the button was touched in the past 3s
+        public boolean wasTouched() {
+            //Log.i(TAG, name + " " + System.currentTimeMillis() + " < " + lastTimeWhenTouched + "3000, diff=" + (System.currentTimeMillis() - lastTimeWhenTouched));
+            return System.currentTimeMillis() < lastTimeWhenTouched + 3000;
+        }
+    }
+
+    TouchSense touchSenseHandRight = new TouchSense("Hand Right");
+    TouchSense touchSenseHandLeft = new TouchSense("Hand Left");
+    TouchSense touchSenseHead = new TouchSense("Head");
+
     protected boolean touchHandRight = false;
     protected boolean touchHandLeft = false;
     protected boolean touchHead = false;
@@ -146,14 +174,19 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
     protected Date lastActive;
 
+    protected Date attentionStart;
+    private boolean followingHuman = false;
+
     protected int batteryPercent = 75;
 
     protected Future<ListenResult> listenFuture;
 
     public BaseBehaviourLibrary() {
-        setInstance();
+
     }
 
+    /*
+    // TODO: very dangereous design. Singleton classes need to have private constructors.
     protected void setInstance() {
         if (instance == null) {
             instance = this;
@@ -161,10 +194,13 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             Log.d(TAG, String.format("Behaviour library singleton already initialised as a %s", instance.getClass().getSimpleName()));
         }
     }
+    */
 
-    public static BaseBehaviourLibrary getInstance() {
+    // TODO: very dangereous design. Singleton classes need to have private constructors.
+    /*
+    public static BaseBehaviourLibrary getInstance2() {
         return instance;
-    }
+    }*/
 
     public void setPepperLog(PepperLog pepperLog) {
         this.pepperLog = pepperLog;
@@ -231,13 +267,16 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
                 senseValue = safeToMap;
                 break;
             case "TouchRightHand":
-                senseValue = touchHandRight;
+                //senseValue = touchHandRight;
+                senseValue = touchSenseHandRight.wasTouched();
                 break;
             case "TouchLeftHand":
-                senseValue = touchHandLeft;
+                //senseValue = touchHandLeft;
+                senseValue = touchSenseHandLeft.wasTouched();
                 break;
             case "TouchHead":
-                senseValue = touchHead;
+                //senseValue = touchHead;
+                senseValue = touchSenseHead.wasTouched();
                 break;
             case "TouchBumperLeft":
                 senseValue = touchBumperLeft;
@@ -245,7 +284,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             case "TouchBumperRight":
                 senseValue = touchBumperRight;
                 break;
-            case "TouchBumoerBack":
+            case "TouchBumperBack":
                 senseValue = touchBumperBack;
                 break;
             case "FlapState":
@@ -253,6 +292,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
                 break;
             default:
                 senseValue = false;
+                pepperLog.appendLog(TAG, "Unknown Sense: " + sense.getNameOfElement());
                 break;
         }
 
@@ -267,12 +307,16 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             case "IdleTime":
                 senseValue = getIdleTime();
                 break;
+            case "AttentionTime":
+                senseValue = getAttentionTime();
+                break;
             case "BatteryPercent":
                 senseValue = getBatteryPercent();
                 break;
 
             default:
                 senseValue = 0;
+                pepperLog.appendLog(TAG, "Unknown Double Sense: " + sense.getNameOfElement());
                 break;
         }
 
@@ -285,6 +329,11 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         this.lastActive = new Date();
     }
 
+    protected void setAttentive() {
+        this.attentionStart = new Date();
+    }
+
+
     public double getIdleTime() {
         Date now = new Date();
 
@@ -296,6 +345,24 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
         return Double.valueOf(idleTime);
     }
+
+    public double getAttentionTime() {
+
+        if (!humanPresent) {
+            return 0.0;
+        }
+
+        Date now = new Date();
+
+        if (attentionStart == null) {
+            attentionStart = now;
+        }
+
+        int diff = (int)((now.getTime() - attentionStart.getTime()) / 1000);
+
+        return Double.valueOf(diff);
+    }
+
 
     private double getBatteryPercent() {
         return Double.valueOf(this.batteryPercent);
@@ -505,6 +572,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             pepperLog.appendLog(TAG, "No humans around");
         } else {
             this.humanPresent = true;
+            setAttentive();
 //            approachHuman();
 
             if (humansAround.size() == 1) {
@@ -716,11 +784,16 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     @Override
     public void onRobotFocusGained(QiContext qiContext) {
         pepperLog.appendLog(TAG, "GAINED FOCUS");
+
+        // store the context for later
         setQiContext(qiContext);
+
         actuation = qiContext.getActuation();
         mapping = qiContext.getMapping();
         touch = qiContext.getTouch();
         power = qiContext.getPower();
+        humanAwareness = qiContext.getHumanAwareness();
+
 
         // initializing touch sensors
         touchSensorHead = touch.getSensor("Head/Touch");
@@ -731,12 +804,21 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         touchSensorBumperBack = touch.getSensor("Bumper/Back");
 
         // add touch listeners
-        touchSensorHead.addOnStateChangedListener(this::touchHeadChanged);
-        touchSensorHandLeft.addOnStateChangedListener(this::touchHandLeftChanged);
-        touchSensorHandRight.addOnStateChangedListener(this::touchHandRightChanged);
+        //touchSensorHead.addOnStateChangedListener(this::touchHeadChanged);
+        //touchSensorHandLeft.addOnStateChangedListener(this::touchHandLeftChanged);
+        //touchSensorHandRight.addOnStateChangedListener(this::touchHandRightChanged);
+        //touchSensorBumperLeft.addOnStateChangedListener(this::touchBumperLeftChanged);
+        //touchSensorBumperRight.addOnStateChangedListener(this::touchBumperRightChanged);
+        //touchSensorBumperBack.addOnStateChangedListener(this::touchBumperBackChanged);
+
+        touchSensorHead.addOnStateChangedListener(touchSenseHead::onChanged);
+        touchSensorHandLeft.addOnStateChangedListener(touchSenseHandLeft::onChanged);
+        touchSensorHandRight.addOnStateChangedListener(touchSenseHandRight::onChanged);
+
         touchSensorBumperLeft.addOnStateChangedListener(this::touchBumperLeftChanged);
         touchSensorBumperRight.addOnStateChangedListener(this::touchBumperRightChanged);
         touchSensorBumperBack.addOnStateChangedListener(this::touchBumperBackChanged);
+
 
         // add flap listener
         chargingFlap = power.getChargingFlap();
@@ -748,15 +830,29 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
             }
         }); */
 
+        /*
         FutureUtils
             .wait(0, TimeUnit.SECONDS)
             .andThenConsume(ignore -> doHumans());
+        */
+
+        //humanAwareness = qiContext.getHumanAwareness();
+
+        // attach the listeners in an async manner - does it work more stable?
+        /*
+        qiContext.getHumanAwarenessAsync().andThenConsume(humanAwareness -> {
+            humanAwareness.addOnHumansAroundChangedListener(this::updateHumansAround);
+            humanAwareness.addOnRecommendedHumanToEngageChangedListener(this::updateHumanToEngage);
+        });*/
+
+        humanAwareness.addOnHumansAroundChangedListener(this::updateHumansAround);
+        humanAwareness.addOnRecommendedHumanToEngageChangedListener(this::updateHumanToEngage);
     }
 
     @Override
     public void onRobotFocusLost() {
         // The robot focus is lost.
-        pepperLog.appendLog(TAG, "LOST FOCUS");
+        pepperLog.appendLog(TAG, "Robot focus lost.");
         removeListeners();
     }
 
@@ -781,7 +877,6 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
                 pepperLog.appendLog(TAG, "Human to greet found.");
                 Frame robotFrame = actuation.robotFrame();
                 return getDistance(robotFrame, getClosestHuman(humans));
-
             } else {
                 pepperLog.appendLog(TAG, "No human.");
                 return 99.0;
@@ -846,7 +941,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
         setAnimating(true);
 
-        Frame targetFrame = createTargetFrame(targetHuman);
+        Frame targetFrame = createTargetFrame(targetHuman).frame();
 
         LookAt lookAt = LookAtBuilder.with(qiContext)
             .withFrame(targetFrame)
@@ -893,45 +988,60 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
     private void followHuman(Human human) {
         pepperLog.appendLog(TAG, "Follow human?");
         // Create the target frame from the human.
-        Frame targetFrame = createTargetFrame(human);
+        //AttachedFrame targetFrame = createTargetFrame(human);
 
-        pepperLog.appendLog(TAG, "Follow human");
+        pepperLog.appendLog(TAG, "Create target frame 1+?");
+        // Get the human head frame.
+        //pepperLog.appendLog(TAG, "Follow human");
 
-        FutureUtils
-            .wait(0, TimeUnit.SECONDS)
-            .andThenConsume(ignore -> {
-                pepperLog.appendLog(TAG, "Follow start?");
-                // Create a GoTo action.
-                goTo = GoToBuilder.with(qiContext)
-                        .withFrame(targetFrame)
-                        .build();
+        AttachedFrame targetFrame = human.async().getHeadFrame().andThenApply(frame -> {
+                    pepperLog.appendLog(TAG, "Create target frame 2+?");
+                    // Create a transform for Pepper to stay at 1 meter in front of the human.
+                    Transform transform = TransformBuilder.create().fromXTranslation(0.9);
+                    pepperLog.appendLog(TAG, "Create target frame 3+?");
+                    // Create an AttachedFrame that automatically updates with the human frame.
+                    AttachedFrame attachedFrame = frame.makeAttachedFrame(transform);
+                    pepperLog.appendLog(TAG, "Create target frame 4+?");
+                    // Returns the corresponding Frame.
+                    return attachedFrame;
+                }).getValue();
 
-//                pepperLog.appendLog(TAG, "Follow started");
 
-//                goTo.addOnStartedListener(() -> {
-//                });
-//                 setAnimating(false);
-//                goTo.run();
 
-//                pepperLog.appendLog(TAG, "DONE FOLLOWING");
+        Future<Frame> frameFuture = targetFrame.async().frame();
+        frameFuture.andThenCompose(frame -> {
+            pepperLog.appendLog(TAG, "Follow start?");
+            // Create a GoTo action.
+            goTo = GoToBuilder.with(qiContext)
+                    .withFrame(frame)
+                    .build();
 
-                setAnimating(true);
-
-                // Execute the GoTo action asynchronously.
-                goToFuture = goTo.async().run();
-                goToFuture.thenConsume(future -> {
-                    if (future.isSuccess()) {
-                        pepperLog.appendLog(TAG,"Follow done");
-                        this.facingNearHuman = true;
-                    } else if (future.hasError()) {
-                        pepperLog.appendLog(TAG, String.format("Follow error: %s", future.getErrorMessage()));
-                    } else if (future.isCancelled()) {
-                        pepperLog.appendLog(TAG, "Follow cancelled");
-                    }
-
-                    setAnimating(false);
-                });
+            // Display text when the GoTo action starts.
+            goTo.addOnStartedListener(() -> {
+                pepperLog.appendLog(TAG, "Follow human started");
+                //setAttentive();
+                followingHuman = true;
             });
+
+            setAnimating(true);
+
+            // Execute the GoTo action asynchronously.
+            goToFuture = goTo.async().run();
+
+            return goToFuture;
+        }).thenConsume(future -> {
+            followingHuman = false;
+            if (future.isSuccess()) {
+                pepperLog.appendLog(TAG,"Follow done");
+                this.facingNearHuman = true;
+            } else if (future.hasError()) {
+                pepperLog.appendLog(TAG, String.format("Follow error: %s", future.getErrorMessage()));
+            } else if (future.isCancelled()) {
+                pepperLog.appendLog(TAG, "Follow cancelled");
+            }
+
+            setAnimating(false);
+        });
     }
 
     private double getDistance(Frame robotFrame, Human human) {
@@ -961,7 +1071,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         }
     }
 
-    private Frame createTargetFrame(Human humanToFollow) {
+    private AttachedFrame createTargetFrame(Human humanToFollow) {
         pepperLog.appendLog(TAG, "Create target frame 1?");
         // Get the human head frame.
         Frame humanFrame = humanToFollow.getHeadFrame();
@@ -973,7 +1083,7 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
         AttachedFrame attachedFrame = humanFrame.makeAttachedFrame(transform);
         pepperLog.appendLog(TAG, "Create target frame 4?");
         // Returns the corresponding Frame.
-        return attachedFrame.frame();
+        return attachedFrame;
     }
 
     public boolean isBatteryLow() {
@@ -1008,32 +1118,32 @@ public class BaseBehaviourLibrary implements BehaviourLibrary, RobotLifecycleCal
 
     // Implementation of touch methods
     public void touchHeadChanged(TouchState touchState) {
-        touchHead = touchState.getTouched() ? true : false;
+        touchHead = touchState.getTouched();
         Log.i(TAG, "Head " + (touchHead ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchHandLeftChanged(TouchState touchState) {
-        touchHandLeft = touchState.getTouched() ? true : false;
+        touchHandLeft = touchState.getTouched();
         Log.i(TAG, "Hand Left " + (touchHandLeft ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchHandRightChanged(TouchState touchState) {
-        touchHandRight = touchState.getTouched() ? true : false;
+        touchHandRight = touchState.getTouched();
         Log.i(TAG, "Hand Right " + (touchHandRight ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchBumperLeftChanged(TouchState touchState) {
-        touchBumperLeft = touchState.getTouched() ? true : false;
+        touchBumperLeft = touchState.getTouched();
         Log.i(TAG, "Bumper Left " + (touchBumperLeft ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchBumperRightChanged(TouchState touchState) {
-        touchBumperRight = touchState.getTouched() ? true : false;
+        touchBumperRight = touchState.getTouched();
         Log.i(TAG, "Bumper Right " + (touchBumperRight ? "touched" : "released") + " at " + touchState.getTime());
     }
     public void touchBumperBackChanged(TouchState touchState) {
-        touchBumperBack = touchState.getTouched() ? true : false;
+        touchBumperBack = touchState.getTouched();
         Log.i(TAG, "Bumper Back " + (touchBumperBack ? "touched" : "released") + " at " + touchState.getTime());
     }
 
     public void chargingFlapChanged(FlapState flapState) {
-        chargingFlapUp = flapState.getOpen() ? true : false;
+        chargingFlapUp = flapState.getOpen();
         Log.i(TAG, "Flap (Charging Port) " + (chargingFlapUp ? "open" : "closed") + " at " + flapState.getTime());
     }
 
