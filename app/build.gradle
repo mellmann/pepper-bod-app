@@ -20,6 +20,17 @@ android {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
+    // https://github.com/softbankrobotics-labs/additional-documentation-pepper-running-naoqi-2-9-android-version/blob/master/faq_naoqi_2-9.md
+    // reduce the size of the apk
+    splits {
+        // Configures multiple APKs based on ABI.
+        abi {
+            enable true
+            reset()
+            include "x86", "armeabi-v7a"
+            universalApk false
+        }
+    }
 }
 
 dependencies {
