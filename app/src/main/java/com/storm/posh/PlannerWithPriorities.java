@@ -2,34 +2,39 @@ package com.storm.posh;
 
 import com.storm.pepper.PepperLog;
 import com.storm.posh.plan.Plan;
-import com.storm.posh.plan.planelements.Sense;
 import com.storm.posh.plan.planelements.PlanElement;
+import com.storm.posh.plan.planelements.Sense;
 import com.storm.posh.plan.planelements.action.ActionEvent;
-import com.storm.posh.plan.planelements.drives.DriveCollection;
-import com.storm.posh.plan.planelements.drives.DriveElement;
 import com.storm.posh.plan.planelements.action.ActionPattern;
 import com.storm.posh.plan.planelements.competence.Competence;
 import com.storm.posh.plan.planelements.competence.CompetenceElement;
+import com.storm.posh.plan.planelements.drives.DriveCollection;
+import com.storm.posh.plan.planelements.drives.DriveElement;
 
 import java.util.Calendar;
 import java.util.List;
 
-public class Planner {
+public class PlannerWithPriorities
+{
+    private static final String TAG = PlannerWithPriorities.class.getSimpleName();
+
     private PepperLog pepperLog;
-    private static final String TAG = Planner.class.getSimpleName();
+
+    private BehaviourLibrary behaviourLibrary;
+
     private volatile Plan plan;
     private int iteration;
 
-    public BaseBehaviourLibrary behaviourLibrary;
 
-    public Planner(PepperLog pepperLog) {
+    public PlannerWithPriorities(PepperLog pepperLog, BehaviourLibrary behaviourLibrary) {
         this.pepperLog = pepperLog;
+        this.behaviourLibrary = behaviourLibrary;
     }
 
-    public void start() {
-        pepperLog.appendLog(TAG,"Starting Planner");
-        plan = Plan.getInstance();
-        behaviourLibrary = BaseBehaviourLibrary.getInstance();
+    public void initialize(Plan plan) {
+        pepperLog.appendLog(TAG,"Initializing Planner");
+
+        this.plan = plan;
 
         pepperLog.appendLog(TAG, "Got plan:");
         pepperLog.appendLog(TAG, plan.toString());
@@ -56,7 +61,8 @@ public class Planner {
     }
 
 
-    private boolean drivesHandler() {
+    private boolean drivesHandler()
+    {
         int validDrivesCount = plan.getDriveCollections().size();
         pepperLog.appendLog(TAG, String.format("Starting drives: %d", validDrivesCount));
         int currentPriority = -1;
@@ -117,6 +123,7 @@ public class Planner {
     private boolean driveHandler(DriveCollection drive) {
         pepperLog.notifyABOD3(drive.getNameOfElement(), "D");
         long time = Calendar.getInstance().getTimeInMillis();
+        pepperLog.appendLog(TAG, "Planner: currentdrive: " + drive);
         plan.setCurrentDrive(drive);
 
         for (DriveElement driveElement : drive.getDriveElements()) {

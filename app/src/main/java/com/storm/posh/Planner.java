@@ -17,19 +17,23 @@ import java.util.List;
 public class Planner {
     private PepperLog pepperLog;
     private static final String TAG = Planner.class.getSimpleName();
+    private BehaviourLibrary behaviourLibrary;
     private volatile Plan plan;
     private int iteration;
 
-    public BaseBehaviourLibrary behaviourLibrary;
-
-    public Planner(PepperLog pepperLog) {
+    public Planner(PepperLog pepperLog, BehaviourLibrary behaviourLibrary) {
         this.pepperLog = pepperLog;
+        this.behaviourLibrary = behaviourLibrary;
     }
 
-    public void start() {
-        pepperLog.appendLog(TAG,"Starting Planner");
-        plan = Plan.getInstance();
-        behaviourLibrary = BaseBehaviourLibrary.getInstance();
+    public Plan getCurrentPlan() {
+        return this.plan;
+    }
+
+    public void initialize(Plan plan) {
+        pepperLog.appendLog(TAG,"Initializing Planner");
+
+        this.plan = plan;
 
         pepperLog.appendLog(TAG, "Got plan:");
         pepperLog.appendLog(TAG, plan.toString());
@@ -43,8 +47,12 @@ public class Planner {
     }
 
     public void reset() {
-        behaviourLibrary.reset();
-        plan.reset();
+        if(behaviourLibrary != null) {
+            behaviourLibrary.reset();
+        }
+        if (plan != null) {
+            plan.reset();
+        }
     }
 
     public List<DriveCollection> driveCollections() {
