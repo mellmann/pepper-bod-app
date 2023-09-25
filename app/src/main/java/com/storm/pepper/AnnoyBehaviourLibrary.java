@@ -48,7 +48,7 @@ public class AnnoyBehaviourLibrary extends BaseBehaviourLibrary {
     private Future<ListenResult> listenFuture;
 
     public AnnoyBehaviourLibrary() {
-        setInstance();
+        super();
     }
 
     public void reset() {
