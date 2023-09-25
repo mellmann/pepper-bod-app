@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -16,18 +17,20 @@ import com.aldebaran.qi.sdk.QiSDK;
 import com.aldebaran.qi.sdk.design.activity.RobotActivity;
 import com.aldebaran.qi.sdk.design.activity.conversationstatus.SpeechBarDisplayStrategy;
 import com.aldebaran.qi.sdk.util.FutureUtils;
+import com.storm.posh.PlannerWithPriorities;
 import com.storm.posh.plan.planelements.PlanElement;
 import com.storm.posh.plan.planelements.Sense;
+import com.storm.posh.plan.planelements.action.ActionEvent;
+import com.storm.posh.plan.planelements.action.ActionPatternElement;
 import com.storm.posh.plan.reader.xposh.XPOSHPlanReader;
 import com.storm.posh.BaseBehaviourLibrary;
-import com.storm.posh.Planner;
 import com.storm.posh.plan.Plan;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends RobotActivity implements PepperLog {
@@ -36,10 +39,18 @@ public class MainActivity extends RobotActivity implements PepperLog {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final SimpleDateFormat logTimeFormat = new SimpleDateFormat("HH:mm:ss.SSSS");
 
+    private PepperServer pepperServer;
+
     private int maxIterations = 0;
     private boolean stopRunningPlan;
 
-    private Planner planner;
+    //private Planner planner;
+    private PlannerWithPriorities planner;
+
+    private BaseBehaviourLibrary behaviourLibrary;
+
+    // initialize UI stuff
+
 //    private UIPlanTree uiPlanTree = null;
 //    private ExecutorService backgroundColorExecutor = null;
 //    private ScheduledExecutorService backgroundPingerScheduler;
@@ -53,9 +64,6 @@ public class MainActivity extends RobotActivity implements PepperLog {
 
     private TextView selectedPlan;
 
-    private PepperServer pepperServer;
-    private BaseBehaviourLibrary behaviourLibrary;
-
     public Button startButton;
     public Button stopButton;
     public Button selectPlan;
@@ -64,6 +72,7 @@ public class MainActivity extends RobotActivity implements PepperLog {
 
     private ArrayList currentElements = new ArrayList();
 
+    ListView sensesList;
     ListView drivesList;
     ListView elementsList;
 
@@ -71,11 +80,14 @@ public class MainActivity extends RobotActivity implements PepperLog {
     ElementsListAdapter elementsAdapter;
     NoElementsListAdapter noElementsAdapter;
 
+    SensesListAdapter sensesListAdapter;
+
     private int planResourceId;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setSpeechBarDisplayStrategy(SpeechBarDisplayStrategy.OVERLAY);
@@ -84,25 +96,25 @@ public class MainActivity extends RobotActivity implements PepperLog {
 //        currentDriveName = findViewById(R.id.currentDrive);
 //        currentElementName = findViewById(R.id.currentElement);
 //        checkedSenses = findViewById(R.id.checkedSenses);
-
 //        rootLayout = findViewById(R.id.root_layout);
 
+        // initialize the behavior library
         // HOLLY FUCK: this constructor saves itself into a singleton variable which is used by the planner
         behaviourLibrary = new POSHBehaviourLibrary();
         // behaviourLibrary = new BenediktBehaviourLibrary();
-        // end configure for chosen plan
 
         behaviourLibrary.setPepperLog(this);
+
+        // TODO: this is a hack - gives direct access to the MainActivity (for some visualization)
         behaviourLibrary.setActivity(this);
 
         // initialize base POSH stuff
-        // ACHTUNG: planner gets accoess to the behavior library through a singleton. Needs to be fixed.
-        planner = new Planner(this);
-
+        // ACHTUNG: planner gets access to the behavior library through a singleton. Needs to be fixed.
+        //planner = new Planner(this, behaviourLibrary);
+        planner = new PlannerWithPriorities(this, behaviourLibrary);
 
         // Pepper server
         pepperServer = new PepperServer(this);
-
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -110,8 +122,9 @@ public class MainActivity extends RobotActivity implements PepperLog {
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
 
+        // TODO: why is this line here and not up there with the initialization of the behavior library?
         // Register the RobotLifecycleCallbacks to this Activity.
-        QiSDK.register(this, BaseBehaviourLibrary.getInstance());
+        QiSDK.register(this, behaviourLibrary);
 
 
         startButton = findViewById(R.id.start_button);
@@ -171,16 +184,20 @@ public class MainActivity extends RobotActivity implements PepperLog {
             behaviourLibrary.clearLocations();
         });
 
+        sensesList = (ListView) findViewById(R.id.senses_list);
         drivesList = (ListView) findViewById(R.id.drives_list);
         elementsList = (ListView) findViewById(R.id.elements_list);
 
-
-
-
         // configure for chosen plan
-        //planResourceId = R.raw.plan;
         setSelectedPlan("Plan", R.raw.plan);
-        //readPlan();
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Unregister the RobotLifecycleCallbacks for this Activity.
+        QiSDK.unregister(this, behaviourLibrary);
+        pepperServer.destroy();
+        super.onDestroy();
     }
 
     public void updateLocationsCount(int count) {
@@ -203,7 +220,7 @@ public class MainActivity extends RobotActivity implements PepperLog {
     private void setSelectedPlan(String name, int ressourceId) {
         selectedPlan.setText(name);
         planResourceId = ressourceId;
-        readPlan();
+        loadPlanFromFile();
         appendLog(TAG, "Set Selected Plan: \"" + name + "\" with id: " + planResourceId);
     }
 
@@ -228,6 +245,8 @@ public class MainActivity extends RobotActivity implements PepperLog {
             new PlanListItem("Plan Touch Wave",        R.raw.plan_touch_wave),
             new PlanListItem("Plan Working",           R.raw.plan_working),
             new PlanListItem("Plan Emotion Game",      R.raw.plan_emotion_game),
+            new PlanListItem("Plan Test",              R.raw.plan_test),
+            new PlanListItem("Uploaded",      -1),
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -240,8 +259,6 @@ public class MainActivity extends RobotActivity implements PepperLog {
         }
         // UGLY^2: setItems wants CharSequence, so cannot use items directly...
         builder.setItems(names, (DialogInterface dialog, int which) -> {
-            // HACK: this needs to be somewhere else
-            planner.reset();
             setSelectedPlan(items[which].name, items[which].resourceId);
         });
 
@@ -269,12 +286,22 @@ public class MainActivity extends RobotActivity implements PepperLog {
         });
     }
 
+    TreeMap<String, String> activatedSenses = new TreeMap<>();
+    ArrayList<String> activeSensesList = new ArrayList<>();
+
     @Override
     public void checkedBooleanSense(String tag, Sense sense, boolean value) {
         String formattedMessage = String.format("%s: %b", sense, value);
 
         appendLog(tag, "Checked sense - "+formattedMessage, false);
         notifyABOD3(sense.getNameOfElement(), "S");
+
+        runOnUiThread(() -> {
+            if (!activatedSenses.containsKey(sense.getNameOfElement())) {
+                activeSensesList.add(sense.getNameOfElement());
+            }
+            activatedSenses.put(sense.getNameOfElement(), "" + value);
+        });
 
 //        runOnUiThread(new Runnable(){
 //            @Override
@@ -290,6 +317,13 @@ public class MainActivity extends RobotActivity implements PepperLog {
 
         appendLog(tag, "Checked sense - "+formattedMessage, false);
         notifyABOD3(sense.getNameOfElement(), "S");
+
+        runOnUiThread(() -> {
+            if (!activatedSenses.containsKey(sense.getNameOfElement())) {
+                activeSensesList.add(sense.getNameOfElement());
+            }
+            activatedSenses.put(sense.getNameOfElement(), "" + value);
+        });
 
 //        runOnUiThread(new Runnable(){
 //            @Override
@@ -318,6 +352,15 @@ public class MainActivity extends RobotActivity implements PepperLog {
         });
     }
 
+    public void toggleToolBarView(View view) {
+        LinearLayout toolBar = findViewById(R.id.toolBarLayout);
+        if(toolBar.getVisibility() == View.INVISIBLE) {
+            toolBar.setVisibility(View.VISIBLE);
+        } else {
+            toolBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
     @Override
     public void clearCheckedSenses() {
 //        runOnUiThread(new Runnable(){
@@ -330,12 +373,9 @@ public class MainActivity extends RobotActivity implements PepperLog {
 
     @Override
     public void addCurrentElement(final PlanElement element) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (element != null) {
-                    currentElements.add(element);
-                }
+        runOnUiThread(() -> {
+            if (element != null && (element instanceof ActionEvent || element instanceof ActionPatternElement)) {
+                currentElements.add(element);
             }
         });
     }
@@ -343,6 +383,8 @@ public class MainActivity extends RobotActivity implements PepperLog {
     @Override
     public void clearCurrentElements() {
         currentElements.clear();
+        activatedSenses.clear();
+        activeSensesList.clear();
     }
 
     @Override
@@ -352,32 +394,73 @@ public class MainActivity extends RobotActivity implements PepperLog {
         pepperServer.sendMessage(message);
     }
 
-    public void readPlan(View view) {
-        readPlan();
+    public void loadPlanFromFile(View view) {
+        loadPlanFromFile();
     }
 
-    private void readPlan() {
-        Log.d(TAG, "READING PLAN");
+    private void loadPlanFromFile()
+    {
+        // check if there is a valid file to be read
+        InputStream planFile = null;
+        if(planResourceId != -1) {
+            planFile = getResources().openRawResource(planResourceId);
+        } else if(pepperServer.lastUploadedPlan != null) {
+            planFile = new ByteArrayInputStream(pepperServer.lastUploadedPlan.getBytes());
+        } else {
+            Log.d(TAG, "ERROR: NO VALID PLAN ");
+            return;
+        }
 
+        // HACK: this needs to be somewhere else
+        planner.reset();
+        // reset the library
+        // TODO: we need to create a new instance each time to make sure all runtime things are reset
+        //behaviourLibrary.reset();
+
+        // clear display
+        drivesAdapter = null;
+        sensesListAdapter = null;
+        clearCurrentElements();
+
+        Log.d(TAG, "READING PLAN: " + planResourceId);
+
+        // reset the singleton plan
         Plan.getInstance().cleanAllLists();
+
+        // TODO: under the hood this loads the singleton plan planner.getCurrentPlan()
         XPOSHPlanReader planReader = new XPOSHPlanReader();
-
-        InputStream planFile = getResources().openRawResource(planResourceId);
-
         planReader.readFile(planFile);
 
-        planner.start();
+        // initialize the planer with a new plan
+        planner.initialize(Plan.getInstance());
 
+        // display the new plan
         displayPlan();
     }
 
-    private void displayPlan() {
+    private void displayPlan()
+    {
         Plan plan = Plan.getInstance();
 
         if (drivesAdapter == null || drivesAdapter.isStale(plan.getCurrentDrive())) {
             drivesAdapter = new DrivesListAdapter(this, plan.getDriveCollections(), plan.getCurrentDrive());
             drivesList.setAdapter(drivesAdapter);
+        } else if(drivesAdapter.isStale(plan.getCurrentDrive())) {
+            // TODO: this doesn't seem to work for some reason
+            drivesAdapter.notifyDataSetChanged();
+            Log.d(TAG, "displayPlan: currentDrive" + plan.getCurrentDrive());
         }
+
+        // TODO: create a new adapter to update the values
+        if(sensesListAdapter == null || true) {
+            sensesListAdapter = new SensesListAdapter(this, activeSensesList, activatedSenses);
+            sensesList.setAdapter(sensesListAdapter);
+        }
+        Log.d(TAG, "sensesListAdapter " + activeSensesList.size() + " - " + sensesListAdapter.getCount());
+        for(String key: activatedSenses.keySet()){
+            Log.d(TAG, "blub: " + key + "  " + activatedSenses.get(key));
+        }
+        sensesListAdapter.notifyDataSetChanged();
 
         if (currentElements.isEmpty()) {
             if (noElementsAdapter == null) {
@@ -393,19 +476,22 @@ public class MainActivity extends RobotActivity implements PepperLog {
         }
     }
 
-    public void runPlan() {
+    public void runPlan()
+    {
         clearLog();
-        FutureUtils.wait(0, TimeUnit.SECONDS).andThenConsume(ignore -> behaviourLibrary.doHumans());
 
         stopRunningPlan = false;
 
         final Handler handler = new Handler();
-        Runnable planRunner = new Runnable() {
+        Runnable planRunner = new Runnable()
+        {
             int iteration = 1;
             boolean completed = false;
+            long lastTimeStamp = System.currentTimeMillis();
 
             @Override
-            public void run() {
+            public void run()
+            {
                 if (stopRunningPlan == true) {
                     appendLog("PLAN RUN STOPPED");
                     stopRunningPlan = false;
@@ -419,6 +505,11 @@ public class MainActivity extends RobotActivity implements PepperLog {
                     appendLog(String.format("\n\n.... starting update #%d....\n\n", iteration));
                     completed = !planner.update(iteration);
                     displayPlan();
+
+                    // debug the execution time
+                    long timeStamp = System.currentTimeMillis();
+                    appendLog("Plan Step Duration: " + (timeStamp - lastTimeStamp) + " (" + (int)(1000.0 / ((timeStamp - lastTimeStamp))) + " fps)");
+                    lastTimeStamp = timeStamp;
 
                 } catch (Exception e) {
                     // TODO: handle exception
@@ -447,14 +538,5 @@ public class MainActivity extends RobotActivity implements PepperLog {
                 appendLog("RUNNING PLAN");
                 handler.postDelayed(planRunner, 1000);
             });
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        // Unregister the RobotLifecycleCallbacks for this Activity.
-        QiSDK.unregister(this, BaseBehaviourLibrary.getInstance());
-        pepperServer.destroy();
-        super.onDestroy();
     }
 }
