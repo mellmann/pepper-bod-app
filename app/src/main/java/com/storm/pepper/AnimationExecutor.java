@@ -7,6 +7,8 @@ import com.aldebaran.qi.sdk.builder.AnimationBuilder;
 import com.aldebaran.qi.sdk.object.actuation.Animate;
 import com.aldebaran.qi.sdk.object.actuation.Animation;
 
+import java.util.Random;
+
 public class AnimationExecutor {
     private static final String TAG = AnimationExecutor.class.getSimpleName();
     private Future<Animation> animationFuture;
@@ -19,8 +21,12 @@ public class AnimationExecutor {
         int resID = 0;
         // Create an animation object.
         switch(toAnimate) {
+            case "GetAttention":
             case "WaveLeft":
+                int[] motions = new int[]{R.raw.raise_both_2, R.raw.hello_07, R.raw.hello_04, R.raw.both_hands_front, R.raw.salute_left, R.raw.salute_right};
+                int idx = new Random().nextInt(motions.length);
                 resID = R.raw.left_hand_high_b001;
+                resID = motions[idx];
                 break;
             case "WaveRight":
                 resID = R.raw.right_hand_high_b001;
@@ -44,16 +50,18 @@ public class AnimationExecutor {
                 resID = R.raw.washing_arms_b001;
                 break;
             case "Laugh":
-                resID = R.raw.laughing;
+                //resID = R.raw.laughing;
+                resID = R.raw.raise_both_2;
                 break;
             default:
                 pepperLog.appendLog(TAG, "Unknown Animation: " + toAnimate);
                 break;
         }
 
-        animationFuture = AnimationBuilder.with(qiContext)
+            animationFuture = AnimationBuilder.with(qiContext)
                 .withResources(resID)
                 .buildAsync();
+
             animationFuture.andThenConsume(myAnimation -> {
                 animate = AnimateBuilder.with(qiContext)
                         .withAnimation(myAnimation)
