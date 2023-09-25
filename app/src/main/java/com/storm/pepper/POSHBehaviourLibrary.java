@@ -1,18 +1,26 @@
 package com.storm.pepper;
 
+import android.util.Log;
+
 import com.aldebaran.qi.Future;
 import com.aldebaran.qi.sdk.QiContext;
 import com.aldebaran.qi.sdk.builder.AnimateBuilder;
 import com.aldebaran.qi.sdk.builder.AnimationBuilder;
 import com.aldebaran.qi.sdk.builder.GoToBuilder;
 import com.aldebaran.qi.sdk.builder.HolderBuilder;
+import com.aldebaran.qi.sdk.builder.LookAtBuilder;
 import com.aldebaran.qi.sdk.builder.TransformBuilder;
+import com.aldebaran.qi.sdk.object.actuation.Actuation;
 import com.aldebaran.qi.sdk.object.actuation.Animate;
 import com.aldebaran.qi.sdk.object.actuation.Animation;
 import com.aldebaran.qi.sdk.object.actuation.Frame;
 import com.aldebaran.qi.sdk.object.actuation.FreeFrame;
 import com.aldebaran.qi.sdk.object.actuation.GoTo;
+import com.aldebaran.qi.sdk.object.actuation.LookAt;
+import com.aldebaran.qi.sdk.object.actuation.LookAtMovementPolicy;
+import com.aldebaran.qi.sdk.object.actuation.Mapping;
 import com.aldebaran.qi.sdk.object.geometry.Transform;
+import com.aldebaran.qi.sdk.object.geometry.Vector3;
 import com.aldebaran.qi.sdk.object.holder.AutonomousAbilitiesType;
 import com.aldebaran.qi.sdk.object.holder.Holder;
 import com.aldebaran.qi.sdk.object.human.AttentionState;
@@ -66,9 +74,11 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     protected  FacialExpressions facialExpressions;
 
     public POSHBehaviourLibrary() {
-        setInstance();
-        basicEmotionObserver = new BasicEmotionObserver();
-        basicEmotionObserver.setListener(this);
+        // initialize the BaseLibrary
+        super();
+
+        //basicEmotionObserver = new BasicEmotionObserver();
+        //basicEmotionObserver.setListener(this);
     }
 
     @Override
@@ -89,9 +99,10 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         abilitiesHeld = false;
         reachedPosition = false;
 
-        gotoExecutor.resetTargetPositions();
+        gotoExecutor.reset();
     }
 
+    @Override
     public boolean getBooleanSense(Sense sense) {
         boolean senseValue;
 
@@ -135,13 +146,19 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             case "Reset":
                 senseValue = haveReset;
                 break;
+            // TODO: unify this with "ArrivedAtLocation" (ReachedPosition is never set)
             case "ReachedPosition":
                 senseValue = reachedPosition;
                 break;
+            case "ArrivedAtLocation":
+                senseValue = gotoExecutor.getArrivedAtLocation();
+                //senseValue = gotoExecutor.getTimeSinceArrived() > 1.0;
+                break;
             default:
                 senseValue = super.getBooleanSense(sense);
-                pepperLog.appendLog(TAG, "Unknown Sense: " + sense.getNameOfElement());
-                break;
+                // super.getBooleanSense(...) will report if it's not
+                //pepperLog.appendLog(TAG, "Unknown Sense: " + sense.getNameOfElement());
+                return senseValue;
         }
 
         pepperLog.checkedBooleanSense(TAG, sense, senseValue);
@@ -149,10 +166,13 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         return senseValue;
     }
 
-    public double getDoubleSense(Sense sense) {
-        double senseValue = 0.0;
+    public double getDoubleSense(Sense sense)
+    {
+        double senseValue;
 
-        if (sense.getNameOfElement().equals("EmotionState")) {
+        switch(sense.getNameOfElement())
+        {
+        case "EmotionState":
             //    UNKNOWN = 0
             //    NEUTRAL = 1
             //    CONTENT = 2
@@ -160,9 +180,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             //    SAD     = 4
             //    ANGRY   = 5
             senseValue = currentEmotion.ordinal();
-        }
-
-        if (sense.getNameOfElement().equals("AttentionState")) {
+            break;
+        case "AttentionState":
             // UNKNOWN = 0
             // LOOKING_AT_ROBOT = 0
             // LOOKING_UP = 0
@@ -174,15 +193,25 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             // LOOKING_DOWN_LEFT = 0
             // LOOKING_DOWN_RIGHT = 0
             senseValue = attentionState.ordinal();
-        }
-
-        if (sense.getNameOfElement().equals("FacialExpression")) {
+            break;
+        case "FacialExpression":
             // UNKNOWN = 0
             // NOT_SMILING = 1
             // SMILING = 2
             // BROADLY_SMILING = 3
             senseValue = facialExpressions.getSmile().ordinal();
+            break;
+        case "CurrentLocationIndex":
+            senseValue = gotoExecutor.getCurrentLocationIndex();
+            break;
+        default:
+            senseValue = super.getDoubleSense(sense);
+            // super.getDoubleSense(...) will report if it's not
+            //pepperLog.appendLog(TAG, "Unknown Double Sense: " + sense.getNameOfElement());
+            return senseValue;
         }
+
+        pepperLog.checkedDoubleSense(TAG, sense, senseValue);
 
         return senseValue;
     }
@@ -240,6 +269,10 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
             case "Roam":
                 roam();
                 break;
+            case "RoamStop":
+                //stopMoving();
+                gotoExecutor.stopMoving();
+                break;
             case "LookUp":
                 lookProvider.lookUp(qiContext, actuation);
                 break;
@@ -275,7 +308,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     }
 
     public void executeAnimation(String toAnimate) {
-        setActive();
+        //setActive();
 
         if (animating) {
             pepperLog.appendLog(TAG, "Animation " + toAnimate + " IN PROGRESS");
@@ -354,7 +387,8 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         }
     }
 
-    public void roam() {
+    public void roam()
+    {
         Date now = new Date();
         if (animating) {
             long seconds_since_last_roam_started = Math.abs(now.getTime() - this.lastRoamTime.getTime()) / 1000;
@@ -376,7 +410,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         }
 
         // set next time to roam
-        int roamDelay = ThreadLocalRandom.current().nextInt(20, 30);
+        int roamDelay = 1;//ThreadLocalRandom.current().nextInt(20, 30);
         pepperLog.appendLog(TAG, String.format("Next roam in %d seconds", roamDelay));
 
         Calendar calendar = Calendar.getInstance();
@@ -389,6 +423,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         pepperLog.appendLog(TAG, "Calling goto square");
         // gotoExecutor.performRoam(qiContext,actuation,mapping,this,pepperLog);
         gotoExecutor.performGotoSquare(qiContext,actuation,mapping,this,pepperLog);
+        setActive();
     }
 
     private void holdAbilities() {
@@ -426,6 +461,7 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
     public void clearWaving() {
         setHaveWavedLeft(false);
         setHaveWavedRight(false);
+        haveCheckedWatch = false;
         pepperLog.appendLog(TAG, "WAVING CLEARED");
     }
 
@@ -441,12 +477,31 @@ public class POSHBehaviourLibrary extends BaseBehaviourLibrary implements OnBasi
         }
     }
 
-
-
     @Override
     public void onRobotFocusGained(QiContext qiContext) {
         super.onRobotFocusGained(qiContext);
-        basicEmotionObserver.startObserving(qiContext);
+
+        if(basicEmotionObserver != null) {
+            basicEmotionObserver.startObserving(qiContext);
+        }
+
+        /*
+        // experimental
+        Actuation actuation = qiContext.getActuation();
+        Frame robotFrame = actuation.robotFrame();
+        Transform transform = TransformBuilder.create().fromTranslation(new Vector3(2,2,1.80));
+        Mapping mapping = qiContext.getMapping();
+        FreeFrame targetFrame = mapping.makeFreeFrame();
+        targetFrame.update(robotFrame, transform, 0L);
+        LookAt lookAt;
+        lookAt = LookAtBuilder.with(qiContext) // Create the builder with the context.
+                .withFrame(targetFrame.frame()) // Set the target frame.
+                .build();
+        lookAt.setPolicy(LookAtMovementPolicy.HEAD_ONLY);
+        lookAt.addOnStartedListener(() -> Log.i(TAG, "LookAt action started."));
+        Future<Void> lookAtFuture;
+        lookAtFuture = lookAt.async().run();
+        */
     }
 
     @Override
