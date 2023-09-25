@@ -78,7 +78,9 @@ public class BenediktBehaviourLibrary extends BaseBehaviourLibrary {
     private Future<ListenResult> listenFuture;
     private Future<Void> chatFuture;
 
-    public BenediktBehaviourLibrary() { setInstance(); }
+    public BenediktBehaviourLibrary() {
+        super();
+    }
 
     public void reset() {
         super.reset();
